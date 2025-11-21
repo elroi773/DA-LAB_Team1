@@ -100,7 +100,7 @@ export default function LookBook() {
         <h1 css={h1Style}>{groupName}</h1>
 
         <div css={grid}>
-          {visibleClovers.map((idx) => (
+          {currentPageClovers.map((idx) => (
             <div key={idx} css={card}>
               <img src={Clover} alt="클로버" css={cloverImg} />
             </div>
