@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import Header from "../component/Giver_Header";
-import GroupCreateLogo from "../assets/clover_complete.png";
+import GroupCreateLogo from "../assets/group_clover.png";
 
 const mobileWrapper = css`
   width: 100vw;
