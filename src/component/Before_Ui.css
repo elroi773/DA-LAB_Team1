@@ -1,4 +1,5 @@
 .box {
+  transform: translateY(90%);
   margin: auto;
   width: 274px;
   height: 289px;
@@ -13,8 +14,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  justify-content: center; 
+  align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 .cloverimg {
