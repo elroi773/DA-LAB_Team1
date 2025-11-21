@@ -7,17 +7,17 @@ const mobileWrapper = css`
   height: 100vh;
   max-width: 402px;
   margin: 0 auto;
-  background-color: #fff;
+  background: #fff;
 
   display: flex;
   flex-direction: column;
 `;
-export default function ReceiverMain(){
-    return(
-        <div css={mobileWrapper}>
-            <Header content=""/>
+export default function ReceiverMain() {
+  return (
+    <div css={mobileWrapper}>
+      <Header content="" />
 
-            <Before/>
-        </div>
-    )
+      <Before />
+    </div>
+  );
 }
