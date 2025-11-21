@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import Header from "../component/Header";
-import Before from "../component/Before_Ui";
+import Group from "../component/Group";
 
 const mobileWrapper = css`
   width: 100vw;
@@ -15,9 +15,9 @@ const mobileWrapper = css`
 export default function ReceiverMain() {
   return (
     <div css={mobileWrapper}>
-      <Header content="" />
+      <Header/>
 
-      <Before />
+      <Group/>
     </div>
   );
 }
