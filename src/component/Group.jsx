@@ -52,8 +52,8 @@ export default function Group() {
 
   return (
     <>
+      <img src={Left} onClick={handlePrev} className="left" />
       <div className="wrapper">
-        <img src={Left} onClick={handlePrev} className="left" />
         <div className="content">
           <p className="group_title">{current.name}</p>
 
@@ -72,6 +72,7 @@ export default function Group() {
             </div>
           )}
         </div>
+
         <div className="msg-wrapper">
           {" "}
           <p className="msgtitle">칭찬메세지</p>{" "}
@@ -88,8 +89,8 @@ export default function Group() {
             </p>{" "}
           </div>{" "}
         </div>
-        <img src={Right} onClick={handleNext} className="right" />
       </div>
+      <img src={Right} onClick={handleNext} className="right" />
     </>
   );
 }

@@ -5,11 +5,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 230px;
 }
 
 /* 좌측 버튼 */
 .left {
+  padding-top: 0px;
   width: 36px;
   height: 36px;
   cursor: pointer;
@@ -21,6 +21,7 @@
 
 /* 우측 버튼 */
 .right {
+  padding-top: 0px;
   width: 36px;
   height: 36px;
   cursor: pointer;
@@ -36,16 +37,19 @@
   font-weight: 700;
 }
 .box {
+  margin-top: 0px;
+  margin-bottom: 40px;
   width: 274px;
   height: 289px;
-  margin: auto;
+  /* margin: auto; */
   background: #fff;
   border-radius: 5px;
   border: 1px solid #d7d7d7;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 .boxmain {
-  margin: auto;
+  /* margin: auto; */
+  margin-top: 25px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -71,7 +75,7 @@
 }
 
 .msg-wrapper {
-  margin-top: 80px;
+  padding-top: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
