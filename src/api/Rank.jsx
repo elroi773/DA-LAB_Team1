@@ -17,7 +17,7 @@ export async function getGroupRankings(groupId) {
 
     if (memberError) throw memberError
 
-    // 클로버 데이터 조회
+    // 하트 데이터 조회
     const { data: clovers, error: cloverError } = await supabase
         .from('clovers')
         .select('receiver_Id, clover_count')
@@ -25,7 +25,7 @@ export async function getGroupRankings(groupId) {
 
     if (cloverError) throw cloverError
 
-    // 집계
+    // 집계 및 정렬
     const cloverSummary = clovers.reduce((acc, row) => {
         acc[row.receiver_Id] = (acc[row.receiver_Id] || 0) + row.clover_count
         return acc
@@ -38,6 +38,6 @@ export async function getGroupRankings(groupId) {
         total_clovers: cloverSummary[member.user_id] || 0
     }))
 
-    // 정렬 반환
+    // 정렬된 배열 반환
     return rankings.sort((a, b) => b.total_clovers - a.total_clovers)
 }
