@@ -1,12 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import No_777 from "../assets/No.777.svg";
+import No_777 from "../assets/No_777.svg";
 import logo from "../assets/logo.svg";
 import { useNavigate } from "react-router-dom";
 
 const mobileWrapper = css`
   width: 100vw;
-  min-height: 100vh; //
+  min-height: 100vh; 
   max-width: 402px;
   margin: 0 auto;
   background-color: #fff;
@@ -58,8 +58,8 @@ const img2 = css`
 const extra = css`
   display: flex;
   flex-direction: row;
-  // align-items: center;
-  //text-align: center;
+  align-items: center;
+  text-align: center;
   justify-content: center;
 `;
 
