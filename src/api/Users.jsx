@@ -1,13 +1,10 @@
-// Users.jsx 회원 (회원가입, 로그인, 프로필 관리)
-import { createClient } from '@supabase/supabase-js'
+// ./api/Users.jsx
 import { supabase } from './supabaseClient.js'
-
 
 // localStorage 키 이름 통일
 const LS_USER_ID = "user_id";
 const LS_SESSION = "sb_session";
 
-// 세션 저장 helper
 function saveSessionToStorage(session) {
   if (!session) return;
   localStorage.setItem(LS_SESSION, JSON.stringify(session));
@@ -23,7 +20,6 @@ function clearAuthStorage() {
   localStorage.removeItem(LS_USER_ID);
 }
 
-// 현재 저장된 세션/유저 가져오는 helper (필요하면 다른 페이지에서도 사용 가능)
 export function getStoredSession() {
   try {
     const raw = localStorage.getItem(LS_SESSION);
@@ -36,7 +32,6 @@ export function getStoredSession() {
 export function getStoredUserId() {
   return localStorage.getItem(LS_USER_ID);
 }
-
 
 // 닉네임 중복 확인
 export async function checkNickname(nickname) {
@@ -57,57 +52,66 @@ export async function checkNickname(nickname) {
   return { success: true, message: '사용 가능한 이름입니다.' }
 }
 
-
-// 회원가입
+// 회원가입 
 export async function signUpUser(nickname, email, password, repassword) {
-  // 비밀번호 확인
-  if (password !== repassword) {
-    return { success: false, message: '비밀번호가 일치하지 않습니다.' }
+  if (!password || password.length < 6) {
+    return { success: false, message: "비밀번호는 6자 이상이어야 합니다." };
   }
 
-  // 회원가입
+  if (password !== repassword) {
+    return { success: false, message: "비밀번호가 일치하지 않습니다." };
+  }
+
+  // 1) Auth 회원가입
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: email,
-    password: password
-  })
+    email,
+    password,
+  });
 
   if (authError) {
-    console.error('회원가입 실패:', authError)
-    return { success: false, message: authError.message }
+    console.error("회원가입 실패:", authError);
+    return { success: false, message: authError.message };
   }
 
-  // profiles 테이블에 닉네임 저장
-  if (authData.user) {
-    const { error: dbError } = await supabase
-      .from('profiles')
-      .insert([{
+  // signUp 성공했는데 user가 없는 경우 방어
+  if (!authData.user) {
+    return { success: false, message: "회원가입에 실패했습니다(유저 없음)." };
+  }
+
+  // 2) profiles 저장: ✅ insert → upsert로 변경
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .upsert(
+      {
         id: authData.user.id,
-        nickname: nickname
-      }])
+        nickname,
+      },
+      { onConflict: "id" }  // PK(id) 충돌이면 update
+    );
 
-    // Auth는 생성되었지만 profiles 저장 실패한 경우
-    if (dbError) {
-      // ⚠️ supabaseAdmin은 서버 전용. 클라이언트에 있으면 안됨.
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-      return { success: false, message: '사용자 정보 저장에 실패했습니다.' }
-    }
+  if (profileError) {
+    console.error("profiles 저장 실패:", profileError);
+    return {
+      success: false,
+      message: "사용자 정보 저장에 실패했습니다.",
+    };
   }
 
-  // 회원가입 직후 자동 로그인 세션이 있을 때 저장해두기
+  // 3) (선택) 세션 저장
   if (authData.session?.user?.id) {
     saveSessionToStorage(authData.session);
     saveUserIdToStorage(authData.session.user.id);
   }
 
-  return { success: true, user: authData.user }
+  return { success: true, user: authData.user };
 }
 
 
 // 로그인
 export async function loginUser(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password
+    email,
+    password
   })
 
   if (error) {
@@ -119,14 +123,11 @@ export async function loginUser(email, password) {
     return { success: false, message: '로그인에 실패했습니다.' }
   }
 
-  // 여기서 세션 + userId 로컬 저장
-  // supabase 기본 세션 저장과 별개로 "확실히" 남겨두는 보조 저장
   saveSessionToStorage(data.session);
   saveUserIdToStorage(data.user.id);
 
   return { success: true, user: data.user, userId: data.user.id }
 }
-
 
 // 로그아웃
 export async function logOut() {
@@ -137,12 +138,9 @@ export async function logOut() {
     return { success: false, message: error.message }
   }
 
-  // 로그아웃 시 로컬에 저장한 것도 삭제
   clearAuthStorage();
-
   return { success: true }
 }
-
 
 // 닉네임 변경
 export async function updateNickname(userId, newNickname) {
@@ -160,10 +158,8 @@ export async function updateNickname(userId, newNickname) {
   return { success: true, profile: data }
 }
 
-
-// 회원 탈퇴
-export async function deleteUser(id) {
-  // profiles 수동 삭제
+export async function deleteUserClientOnly(id) {
+  // profiles만 삭제
   const { error: dbError } = await supabase
     .from('profiles')
     .delete()
@@ -173,18 +169,9 @@ export async function deleteUser(id) {
     return { success: false, message: 'profiles 삭제 실패' }
   }
 
-  // Auth 삭제 
-  // ⚠️ supabaseAdmin은 서버 전용. 클라이언트에 있으면 안됨.
-  const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id)
-
-  if (authError) {
-    return { success: false, message: 'Auth 삭제 실패' }
-  }
-
-  // 탈퇴 성공이면 로컬 저장도 삭제
+  // Auth 유저 삭제는 서버에서만 가능
   clearAuthStorage();
-
-  return { success: true }
+  return { success: true, message: "profiles만 삭제되었습니다. Auth 삭제는 서버에서 처리해야 합니다." }
 }
 
 export { supabase }
