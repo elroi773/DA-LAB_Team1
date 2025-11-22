@@ -1,16 +1,6 @@
 // 회원 (회원가입, 로그인, 프로필 관리)
 
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-)
-
-const supabaseAdmin = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_SECRET_KEY
-)
+import {supabase} from '../lib/supabaseClient'
 
 // 닉네임 중복 확인
 export async function checkNickname(nickname) {
