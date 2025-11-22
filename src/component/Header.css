@@ -1,0 +1,78 @@
+.exit {
+  float: left;
+  padding-left: 30px;
+  padding-top: 30px;
+}
+.create {
+  float: right;
+  padding-right: 30px;
+  padding-top: 30px;
+}
+
+body.active-modal {
+  overflow-y: hidden;
+}
+
+.modal,
+.overlay {
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: fixed;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.25);
+}
+.modal-content {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  line-height: 1.4;
+  background: #fff;
+  width: 342px;
+  height: 129px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  max-width: 600px;
+  min-width: 300px;
+}
+.modal-content p {
+margin-top: 25px;
+  color: #adadad;
+  margin-left: 24px;
+  margin-bottom: 1px;
+  font-family: Pretendard;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+.modal-content input {
+  width: 218px;
+  height: 47px;
+
+  margin-left: 24px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  border: 1px solid #d7d7d7;
+}
+.modal-content input ::placeholder {
+  margin-right: 10px;
+
+}
+.closemodal {
+  margin-left: 5px;
+  color: #fff;
+  height: 50px;
+  width: 66px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background: #80a867;
+  border: none;
+  outline: none;
+}

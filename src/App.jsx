@@ -1,19 +1,14 @@
 import { useState } from 'react'
 import './App.css'
 import { Routes, Route } from 'react-router-dom'
-import LookBook from './pages/LookBook'
-import GroupCreate from './pages/GroupCreate'
-import GiverMain from './pages/GiverMain'
-
+// import Before from './component/Before_Ui'
+import Group from './component/Group'
 
 function App() {
   return (
     <>
-      <Routes>
-        <Route path="/look-book" element={<LookBook />} />
-        <Route path="/groupcreate" element={<GroupCreate />}/>
-        <Route path="/" element={<GiverMain />}/>
-      </Routes>
+    <Group></Group>
+    {/* <Before></Before> */}
     </>
   )
 }

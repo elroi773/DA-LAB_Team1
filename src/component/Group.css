@@ -1,0 +1,108 @@
+.wrapper {
+  margin: 0px;
+  gap: 20px;
+  position: relative; /* 좌우 버튼 위치 기준 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 230px;
+}
+
+/* 좌측 버튼 */
+.left {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 우측 버튼 */
+.right {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.group_title {
+  text-align: center;
+  margin: auto;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+.box {
+  width: 274px;
+  height: 289px;
+  margin: auto;
+  background: #fff;
+  border-radius: 5px;
+  border: 1px solid #d7d7d7;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.boxmain {
+  margin: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cloverimg {
+  width: 127px;
+  height: 207px;
+}
+.beforeimg {
+  width: 154.761px;
+  height: 157.978px;
+  flex-shrink: 0;
+}
+.text {
+  color: #000;
+  font-family: Pretendard;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.msg-wrapper {
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.msgtitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.msg-choice {
+  position: relative;
+  width: fit-content;
+}
+
+.msg-icon {
+  width: 350px;
+  height: auto;
+  display: block;
+}
+
+.msg-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -150%);
+
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
