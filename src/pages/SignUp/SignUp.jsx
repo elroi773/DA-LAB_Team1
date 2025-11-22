@@ -4,6 +4,7 @@ import './SignUp.css'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 
+
 const mobileWrapper = css`
     width: 100vw;
     height: 100vh;
@@ -134,6 +135,7 @@ export default function SignUp() {
         navigate('/login')
     }
 
+    
 
     const [input, setInput] = useState('')
     
@@ -144,10 +146,11 @@ export default function SignUp() {
         
     }
 
-
-
-
-
+    const handleSubmit = (e) => {
+        e.preventDefault();      
+        navigate("/login");      
+      };
+    
 
     return (
         <>
@@ -183,16 +186,14 @@ export default function SignUp() {
                         <input type="password" name="password"  className='input_password'  css={input_password} placeholder='비밀번호 입력'/>
                     </div>
                 
-                    <div css={extra} onClick={goToLogin}>
+                    <div css={extra} >
                         <p css={eText1}>이미 회원가입을 하셨다면?</p>
-                        <p css={eText2}>로그인하기</p>
+                        <p css={eText2} onClick={goToLogin}>로그인하기</p>
                     </div>
                 
-                    <div css={signUpBtn}>
-                        <button css={sgupBtn}>회원가입</button>
+                    <div css={signUpBtn} onClick={handleSubmit}>
+                        <button css={sgupBtn} >회원가입</button>
                     </div>
-                
-                
                 
                 </form>
 

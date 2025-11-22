@@ -20,7 +20,7 @@ export default function Header() {
   }; // 모달 close
 
   return (
-    <div className="header-grid">
+    <div className="header-grid1">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="27"

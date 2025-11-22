@@ -15,7 +15,7 @@ const mobileWrapper = css`
 export default function ReceiverMain(){
     return(
         <div css={mobileWrapper}>
-            <Header content=""/>
+            <Header/>
 
             <Before/>
         </div>

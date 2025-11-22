@@ -84,3 +84,10 @@ margin-top: 25px;
   border: none;
   outline: none;
 }
+.header-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30px;
+  width: 100%;
+}

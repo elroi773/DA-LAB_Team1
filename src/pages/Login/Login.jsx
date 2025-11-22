@@ -127,7 +127,11 @@ export default function Login() {
         navigate('/signup')
     }
 
-        
+    const handleSubmit = (e) => {
+        e.preventDefault();      // ✅ 새로고침 막기
+        navigate("/main");      // ✅ 원하는 라우팅
+      };
+    
     return (
         <>
             <div css={mobileWrapper}>
@@ -147,17 +151,14 @@ export default function Login() {
                         <input type="password" name="password"  css={input_password} className='input_password' placeholder='비밀번호 입력'/>
                     </div>
 
-                    <div css={extra} onClick={goToSignUp}>
+                    <div css={extra} >
                         <p css={eText1}>아직 회원이 아니라면?</p>
-                        <p css={eText2}>회원가입하기</p>
+                        <p css={eText2} onClick={goToSignUp}>회원가입하기</p>
                     </div>
 
                     <div css={loginBtn}>
-                        <button css={lgnBtn}>로그인</button>
+                        <button css={lgnBtn} onClick={handleSubmit}>로그인</button>
                     </div>
-
-
-
                 </form>
             </div>
         </>
