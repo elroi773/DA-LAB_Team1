@@ -1,11 +1,6 @@
 // 하트
 
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-)
+import {supabase} from '../lib/supabaseClient'
 
 // 하트 주기 (합계는 COUNT or SUM으로 계산)
 export async function giveClover(groupId, receiverId, cloverCount, message) {
