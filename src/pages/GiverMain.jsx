@@ -1,7 +1,15 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
+import { useEffect, useState } from "react";
+
 import Header from "../component/Giver_Header";
 import GroupList from "../component/GroupList";
+import { GetMembers } from "../api/group";
+
+// ✅ Users.jsx에서 export한 supabase를 그대로 가져와서 "현재 로그인 유저" 확인
+import { supabase } from "../api/Users"; 
+// 경로는 네 프로젝트 구조에 맞게:
+// 예) Users.jsx가 src/api/Users.jsx 라면 "../api/Users"
 
 const mobileWrapper = css`
   width: 100vw;
@@ -12,12 +20,12 @@ const mobileWrapper = css`
 
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 바깥으로 튀어나오는 것 막기 */
+  overflow: hidden;
 `;
 
 const contentWrapper = css`
   flex: 1;
-  overflow-y: auto; 
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,44 +69,128 @@ const notNullWrapper = css`
 `;
 
 const groupListWrapper = css`
-  margin-top: 63px; /* 제목 ~ 첫 카드 간격 (63) */
+  margin-top: 63px;
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 카드 사이 간격 (16) */
-  margin-bottom: 24px; /* 바닥 여백 조금 */
+  gap: 16px;
+  margin-bottom: 24px;
 `;
 
 export default function GiverMain() {
-  const groupname = [
-    "리액트 스터디",
-    "리액트 스터디",
-    "리액트 스터디",
-    "리액트 스터디",
-    "리액트 스터디",
-    "리액트 스터디",
-    "리액트 스터디",
-  ];
+  const [groups, setGroups] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  const hasGroup = groupname.length > 0;
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+
+  // ✅ 1) 현재 로그인 유저 가져오기 (Users.jsx 방식 기반)
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUser = async () => {
+      setLoadingUser(true);
+
+      // 현재 세션 가져오기
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("세션 가져오기 실패:", sessionError);
+      }
+
+      const currentUserId = sessionData?.session?.user?.id ?? null;
+
+      if (isMounted) {
+        setUserId(currentUserId);
+        setLoadingUser(false);
+      }
+    };
+
+    loadUser();
+
+    // ✅ 2) 로그인 상태 변경되면 userId도 갱신
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        const nextUserId = session?.user?.id ?? null;
+        setUserId(nextUserId);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // ✅ 3) userId가 준비되면 그룹 불러오기
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchGroups = async () => {
+      setLoadingGroups(true);
+
+      if (!userId) {
+        if (isMounted) {
+          setGroups([]);
+          setLoadingGroups(false);
+        }
+        return;
+      }
+
+      const result = await GetMembers(userId);
+
+      if (!isMounted) return;
+
+      if (result?.success) {
+        setGroups(result.groups || []);
+      } else {
+        setGroups([]);
+      }
+
+      setLoadingGroups(false);
+    };
+
+    fetchGroups();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  const loading = loadingUser || loadingGroups;
+  const hasGroup = groups.length > 0;
 
   return (
     <div css={mobileWrapper}>
       <Header />
 
       <div css={contentWrapper}>
-        {hasGroup ? (
+        {loading ? (
+          <div css={nullWrapper}>
+            <h1 css={title}>오늘은 어떤 그룹을 관리할까요?</h1>
+            <p css={nullText}>불러오는 중...</p>
+          </div>
+        ) : hasGroup ? (
           <div css={notNullWrapper}>
             <h1 css={title}>오늘은 어떤 그룹을 관리할까요?</h1>
 
             <div css={groupListWrapper}>
-              {groupname.map((name, idx) => (
-                <GroupList key={idx} groupName={name} />
+              {groups.map((g) => (
+                <GroupList
+                  key={g.group_id}
+                  groupId={g.group_id}
+                  // GetMembers 결과에 group_name이 없어서 임시 표시
+                  groupName={`그룹 ${g.group_id}`}
+                  role={g.role}
+                  clovers={g.clovers}
+                />
               ))}
             </div>
           </div>
         ) : (
           <div css={nullWrapper}>
             <h1 css={title}>오늘은 어떤 그룹을 관리할까요?</h1>
+
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="155"
@@ -106,52 +198,54 @@ export default function GiverMain() {
               viewBox="0 0 155 158"
               fill="none"
               className="clover-none"
-              css={svg}
+              css={svgStyle}
             >
-              {" "}
               <path
                 d="M82.5758 30.7935C94.8286 47.7723 95.7017 77.8142 79.0523 90.3094C62.4029 102.805 34.5359 93.0215 22.283 76.0428C10.0301 59.064 13.5942 35.1707 30.2436 22.6754C46.893 10.1802 70.3229 13.8148 82.5758 30.7935Z"
                 fill="#80A867"
-              />{" "}
+              />
               <path
                 d="M72.2821 30.7427C60.0292 47.7215 59.1561 77.7634 75.8055 90.2586C92.4549 102.754 120.322 92.9707 132.575 75.992C144.828 59.0133 141.264 35.1199 124.614 22.6246C107.965 10.1294 84.5349 13.764 72.2821 30.7427Z"
                 fill="#80A867"
-              />{" "}
+              />
               <path
                 d="M72.2821 127.235C60.0292 110.257 59.1561 80.2146 75.8055 67.7194C92.4549 55.2242 120.322 65.0073 132.575 81.986C144.828 98.9648 141.264 122.858 124.614 135.353C107.965 147.849 84.5349 144.214 72.2821 127.235Z"
                 fill="#80A867"
-              />{" "}
+              />
               <path
                 d="M82.4786 127.235C94.7314 110.257 95.6045 80.2146 78.9551 67.7194C62.3057 55.2242 34.4386 65.0073 22.1858 81.986C9.93291 98.9648 13.497 122.858 30.1464 135.353C46.7958 147.849 70.2257 144.214 82.4786 127.235Z"
                 fill="#80A867"
-              />{" "}
+              />
               <path
                 d="M95 56.5C96.6609 56.5 98.2784 57.7582 99.5098 60.0449C100.73 62.3113 101.5 65.4765 101.5 69C101.5 72.5235 100.73 75.6887 99.5098 77.9551C98.2784 80.2418 96.6609 81.5 95 81.5C93.3391 81.5 91.7216 80.2418 90.4902 77.9551C89.27 75.6887 88.5 72.5235 88.5 69C88.5 65.4765 89.27 62.3113 90.4902 60.0449C91.7216 57.7582 93.3391 56.5 95 56.5Z"
                 fill="white"
                 stroke="#304125"
-              />{" "}
+              />
               <path
                 d="M97.5 60.5C98.4512 60.5 99.4466 61.2841 100.234 62.8594C101.007 64.405 101.5 66.5755 101.5 69C101.5 71.4245 101.007 73.595 100.234 75.1406C99.4466 76.7159 98.4512 77.5 97.5 77.5C96.5488 77.5 95.5534 76.7159 94.7656 75.1406C93.9928 73.595 93.5 71.4245 93.5 69C93.5 66.5755 93.9928 64.405 94.7656 62.8594C95.5534 61.2841 96.5488 60.5 97.5 60.5Z"
                 fill="#304125"
                 stroke="#304125"
-              />{" "}
+              />
               <path
                 d="M67 56.5C68.6609 56.5 70.2784 57.7582 71.5098 60.0449C72.73 62.3113 73.5 65.4765 73.5 69C73.5 72.5235 72.73 75.6887 71.5098 77.9551C70.2784 80.2418 68.6609 81.5 67 81.5C65.3391 81.5 63.7216 80.2418 62.4902 77.9551C61.27 75.6887 60.5 72.5235 60.5 69C60.5 65.4765 61.27 62.3113 62.4902 60.0449C63.7216 57.7582 65.3391 56.5 67 56.5Z"
                 fill="white"
                 stroke="#304125"
-              />{" "}
+              />
               <path
                 d="M69.5 60.5C70.4512 60.5 71.4466 61.2841 72.2344 62.8594C73.0072 64.405 73.5 66.5755 73.5 69C73.5 71.4245 73.0072 73.595 72.2344 75.1406C71.4466 76.7159 70.4512 77.5 69.5 77.5C68.5488 77.5 67.5534 76.7159 66.7656 75.1406C65.9928 73.595 65.5 71.4245 65.5 69C65.5 66.5755 65.9928 64.405 66.7656 62.8594C67.5534 61.2841 68.5488 60.5 69.5 60.5Z"
                 fill="#304125"
                 stroke="#304125"
-              />{" "}
-              <ellipse cx="81.5" cy="86.5" rx="3.5" ry="2.5" fill="#304125" />{" "}
+              />
+              <ellipse cx="81.5" cy="86.5" rx="3.5" ry="2.5" fill="#304125" />
               <path
                 d="M51 56C51 56 57.4703 74.684 53.9525 79.8506C52.0012 82.7165 49.9988 82.7165 48.0475 79.8506C44.5297 74.684 51 56 51 56Z"
                 fill="white"
-              />{" "}
+              />
             </svg>
-            <p css={nullText}>아직 만든 그룹이 없어요!</p>
+
+            <p css={nullText}>
+              {userId ? "아직 만든 그룹이 없어요!" : "로그인이 필요해요!"}
+            </p>
           </div>
         )}
       </div>
