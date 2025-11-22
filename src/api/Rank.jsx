@@ -1,11 +1,6 @@
 // 랭킹 보드
 
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-)
+import {supabase} from '../lib/supabaseClient'
 
 export async function getGroupRankings(groupId) {
     // 그룹 멤버 조회
