@@ -1,8 +1,3 @@
-.input_nick::-webkit-input-placeholder { /* Chrome, Safari, Opera */
-  /* text-align: left; */
-  padding-left: 7px;
-}
-
 .input_email::-webkit-input-placeholder {
     padding-left: 7px;
 }
