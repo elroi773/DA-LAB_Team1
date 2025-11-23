@@ -1,112 +1,77 @@
-.wrapper {
-  margin: 0px;
-  gap: 20px;
-  position: relative; /* 좌우 버튼 위치 기준 */
+.container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  min-height: 100vh;
+  padding: 200px 20px 30px; /* 상하좌우 여백 */
+  gap: 60px; /* 🎯 섹션 간 고정 간격 */
 }
-
-/* 좌측 버튼 */
-.left {
-  padding-top: 0px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
+.section {
+  justify-content: center;
+  display: flex;
 }
-
-/* 우측 버튼 */
-.right {
-  padding-top: 0px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.group_title {
+.card {
+  margin: 10px;
   text-align: center;
-  margin: auto;
-  margin-bottom: 5px;
-  font-weight: 700;
 }
-.box {
-  margin-top: 0px;
-  margin-bottom: 40px;
+.stamp-box {
   width: 274px;
   height: 289px;
-  /* margin: auto; */
   background: #fff;
   border-radius: 5px;
   border: 1px solid #d7d7d7;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-}
-.boxmain {
-  /* margin: auto; */
-  margin-top: 25px;
-  height: 100%;
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center; 
+  gap: 12px;
 }
-.cloverimg {
+.stamp-img {
   width: 127px;
   height: 207px;
 }
-.beforeimg {
-  width: 154.761px;
-  height: 157.978px;
-  flex-shrink: 0;
-}
-.text {
+.group_name,
+.empty-text {
   color: #000;
-  font-family: Pretendard;
   font-size: 15px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
 }
 
-.msg-wrapper {
-  padding-top: 250px;
+.praise-section {
+  margin-top: 35px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.msgtitle {
+.praise-header {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 10px;
 }
 
-.msg-choice {
+.praise-box {
   position: relative;
   width: fit-content;
 }
 
-.msg-icon {
+.praise-bg {
   width: 350px;
   height: auto;
   display: block;
 }
 
-.msg-text {
+.praise-text {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -150%);
-
+  transform: translate(-50%, -50%);
   color: white;
   font-size: 18px;
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
+  margin: 0;
 }
