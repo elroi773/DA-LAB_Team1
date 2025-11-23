@@ -113,149 +113,96 @@ const successStyle = css`
   font-size: 14px;
   color: #2ecc71;
 `;
-
-export default function GroupCreate() {
+export default function GroupStatistics() {
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const [groupName, setGroupName] = useState("");
-  const [previewCode, setPreviewCode] = useState("");
-  const [loading, setLoading] = useState(false);
+  if (!location.state) {
+    navigate("/giver-main");
+    return null;
+  }
 
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const { groupId, groupName } = location.state;
 
-  // ✅ 현재 로그인 유저 세션 상태
-  const [user, setUser] = useState(null);
+  const [rankings, setRankings] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ 페이지 들어오면 세션 확인
-  useEffect(() => {
-    const loadSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error("세션 불러오기 실패:", error);
-        setUser(null);
-        setErrorMsg("세션 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
-        return;
-      }
-
-      const sessionUser = data?.session?.user ?? null;
-      setUser(sessionUser);
-
-      if (!sessionUser) {
-        setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
-      }
-    };
-
-    loadSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-        if (!session?.user) {
-          setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
-        } else {
-          setErrorMsg("");
-        }
-      }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
-
-  // UX용: 미리 코드 생성(실제 저장은 생성하기에서 Space 호출)
-  const handleGenerateCodePreview = () => {
-    let code_rad = Math.random().toString(36);
-    code_rad = code_rad.substring(2, 8);
-    setPreviewCode(code_rad.toUpperCase());
-  };
-
-  // 그룹 생성 (Space API 호출)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setSuccessMsg("");
-
-    // ✅ 로그인 세션 없으면 생성 불가
-    if (!user) {
-      setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
-      return;
-    }
-
-    if (!groupName.trim()) {
-      setErrorMsg("그룹 이름을 입력해주세요.");
-      return;
-    }
-
+  /* ⭐⭐⭐ 멤버 / 클로버 모두 다시 불러오는 함수 ⭐⭐⭐ */
+  const loadMembers = async () => {
     try {
-      setLoading(true);
+      const rankingData = await getGroupRankings(groupId);
+      setRankings(rankingData);
 
-      // ✅ creatorId 안 넘기고 groupName만 전달
-      const res = await Space(groupName.trim());
+      const memberData = await getGroupMembers(groupId);
+      setMembers(memberData);
 
-      if (!res.success) {
-        console.error(res.error);
-        setErrorMsg("그룹 생성에 실패했습니다.");
-        return;
-      }
-
-      // 성공
-      setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
-
-      setTimeout(() => {
-        navigate("/");
-      }, 600);
+      console.log("🔥 불러온 그룹 멤버:", memberData);
     } catch (err) {
-      console.error(err);
-      setErrorMsg("알 수 없는 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+      console.error("데이터 불러오기 실패:", err);
     }
   };
+
+  /* 첫 로딩 */
+  useEffect(() => {
+    const init = async () => {
+      console.log("🔥 groupId 전달됨:", groupId);
+      await loadMembers();
+      setLoading(false);
+    };
+    init();
+  }, [groupId]);
+
+  const podium = rankings.slice(0, 3);
 
   return (
-    <div css={mobileWrapper}>
-      <Header />
+    <div css={wrapper}>
+      <div css={mobileScreen}>
+        <Header />
 
-      <div css={logoWrapper}>
-        <img src={GroupCreateLogo} alt="group create logo" css={logoImg} />
+        {/* ─── 상단 PODIUM ─── */}
+        <section css={graphSection}>
+          {loading ? (
+            <div>불러오는 중...</div>
+          ) : podium.length === 0 ? (
+            <h2>아직 클로버가 없어요 😢</h2>
+          ) : (
+            <div css={podiumWrapper}>
+              {podium.map((p) => (
+                <div key={p.user_id} css={podiumItem}>
+                  <span css={nameStyle}>{p.user_name}</span>
+                  <div css={bar} style={{ height: 80 + p.total_clovers * 15 }}>
+                    <span css={countText}>{p.total_clovers}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ─── 멤버 리스트 ─── */}
+        <section css={listSection}>
+          {loading ? (
+            <p>로딩 중...</p>
+          ) : members.length === 0 ? (
+            <p>아직 멤버가 없어요.</p>
+          ) : (
+            members.map((m) => (
+              <MemberList
+                key={m.user_id}
+                groupId={groupId}
+                userId={m.user_id}
+                name={m.nickname}
+                clovers={
+                  rankings.find((r) => r.user_id === m.user_id)
+                    ?.total_clovers || 0
+                }
+                onRefresh={loadMembers}  // ⭐ 삭제 & 칭찬 후 DB 다시 불러오기
+              />
+            ))
+          )}
+        </section>
       </div>
-
-      <form css={formWrapper} onSubmit={handleSubmit}>
-        <h1>그룹 이름</h1>
-        <input
-          type="text"
-          placeholder="그룹 이름 입력"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
-
-        <h1>코드 생성</h1>
-        <div css={codeCreateRow}>
-          <input
-            type="text"
-            placeholder="코드 생성"
-            value={previewCode}
-            readOnly
-          />
-          <button
-            type="button"
-            onClick={handleGenerateCodePreview}
-            disabled={loading}
-          >
-            코드 생성
-          </button>
-        </div>
-
-        <button css={submitBtn} type="submit" disabled={loading}>
-          {loading ? "생성중..." : "생성하기"}
-        </button>
-      </form>
-
-      {errorMsg && <p css={messageStyle}>{errorMsg}</p>}
-      {successMsg && <p css={successStyle}>{successMsg}</p>}
     </div>
   );
 }

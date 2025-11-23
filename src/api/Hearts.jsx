@@ -1,23 +1,27 @@
-// 하트
+// src/api/Hearts.jsx
+import { supabase } from "../api/supabaseClient";
 
-import {supabase} from '../lib/supabaseClient'
-
-// 하트 주기 (합계는 COUNT or SUM으로 계산)
 export async function giveClover(groupId, receiverId, cloverCount, message) {
-    const { data, error } = await supabase
-    .from('clovers')
-    .insert([{ 
-        group_id: groupId, 
-        receiver_id: receiverId, 
-        clover_count: cloverCount, 
-        message 
-    }])    
+  const { data: { session } } = await supabase.auth.getSession();
+  console.log(" session at giveClover:", session);
+  console.log(" access_token exists?", !!session?.access_token);
 
-    if (error) {
-        return { success: false, message: '하트 주기 실패' }
-    } else {
-        return { success: true, message: '하트 주기 성공' }
-    }
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log("user at giveClover:", user);
+
+  const { data, error } = await supabase
+    .from("clovers")
+    .insert([{
+      group_id: groupId,
+      receiver_id: receiverId,
+      clover_count: cloverCount,
+      message,
+    }])
+    .select();
+
+  if (error) {
+    console.error("하트 주기 실패:", error);
+    return { success: false, message: error.message };
+  }
+  return { success: true, data };
 }
-
-export { supabase }

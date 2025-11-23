@@ -6,8 +6,13 @@ import Clover from "../assets/clover_icon_list.png";
 import { Delete_Popup } from "./Delete_Popup";
 import { Give_Clover_Popup } from "./Give_Clover_Popup";
 
+// API
+import { DeleteMember } from "../api/group";
+import { giveClover } from "../api/Hearts";
+
+/* ───────────── CSS ───────────── */
 const itemWrapper = css`
-  width: 354px;
+  width: 314px;
   height: 89px;
   background: #f0f0f0;
   border-radius: 5px;
@@ -21,6 +26,19 @@ const leftBox = css`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  & img {
+    background: white;
+    border-radius: 50%;
+    width: 31px;
+    height: 32px;
+  }
+
+  & span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #304125;
+  }
 `;
 
 const rightBox = css`
@@ -53,18 +71,49 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function MemberList({ name, clovers }) {
+/* ───────────── COMPONENT ───────────── */
+export default function MemberList({
+  groupId,
+  groupName,
+  userId,
+  name,
+  clovers,
+  onRefresh,   // ⭐ 삭제/칭찬 후 부모 컴포넌트 refresh
+}) {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [showGivePopup, setShowGivePopup] = useState(false);
+
+  /* ───────────────── 삭제 처리 ───────────────── */
+  const handleDelete = async () => {
+    const res = await DeleteMember(groupId, userId);
+
+    if (res.success) {
+      alert("삭제되었습니다.");
+      setShowDeletePopup(false);
+      onRefresh(); // ⭐ 부모 컴포넌트 새로고침
+    } else {
+      alert("삭제 실패: " + res.message);
+    }
+  };
+
+  /* ───────────────── 칭찬 처리 ───────────────── */
+  const handleGiveClover = async (count, message) => {
+    const res = await giveClover(groupId, userId, count, message);
+    if (res.success) {
+      alert("칭찬이 전송되었습니다!");
+      setShowGivePopup(false);
+      onRefresh();
+    } else {
+      alert("칭찬 실패!");
+    }
+  };
 
   return (
     <>
       <div css={itemWrapper}>
         <div css={leftBox}>
           <img src={Clover} alt="clover icon" />
-          <span>
-            {name} - {clovers}개
-          </span>
+          <span>{name}</span>
         </div>
 
         <div css={rightBox}>
@@ -77,18 +126,20 @@ export default function MemberList({ name, clovers }) {
         </div>
       </div>
 
+      {/* 삭제 팝업 */}
       {showDeletePopup && (
         <Delete_Popup
           name={name}
-          onConfirm={() => setShowDeletePopup(false)}
+          onConfirm={handleDelete}
           onCancel={() => setShowDeletePopup(false)}
         />
       )}
 
+      {/* 칭찬 팝업 */}
       {showGivePopup && (
         <Give_Clover_Popup
           name={name}
-          onConfirm={() => setShowGivePopup(false)}
+          onConfirm={handleGiveClover}   // count, message 전달됨
           onCancel={() => setShowGivePopup(false)}
         />
       )}

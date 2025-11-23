@@ -87,7 +87,6 @@ export default function GroupStatistics() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // state가 없으면 메인으로 이동
   if (!location.state) {
     navigate("/giver-main");
     return null;
@@ -99,22 +98,27 @@ export default function GroupStatistics() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ------------- 데이터 로드 --------------
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const rankingData = await getGroupRankings(groupId);
-        const memberData = await getGroupMembers(groupId);
+  // ✅ 멤버/랭킹 로드 함수 (refresh에도 사용)
+  const loadMembers = async () => {
+    setLoading(true);
+    try {
+      const rankingData = await getGroupRankings(groupId);
+      setRankings(rankingData);
 
-        setRankings(rankingData);
-        setMembers(memberData);
-      } catch (err) {
-        console.error("데이터 불러오기 실패:", err);
-      }
+      const memberData = await getGroupMembers(groupId);
+      setMembers(memberData);
+
+      console.log("🔥 불러온 그룹 멤버:", memberData);
+    } catch (err) {
+      console.error("데이터 불러오기 실패:", err);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-    load();
+  useEffect(() => {
+    console.log("🔥 groupId 전달됨:", groupId);
+    loadMembers();
   }, [groupId]);
 
   const podium = rankings.slice(0, 3);
@@ -123,8 +127,6 @@ export default function GroupStatistics() {
     <div css={wrapper}>
       <div css={mobileScreen}>
         <Header />
-
-        {/* ─── 상단 PODIUM ─── */}
         <section css={graphSection}>
           {loading ? (
             <div>불러오는 중...</div>
@@ -144,7 +146,6 @@ export default function GroupStatistics() {
           )}
         </section>
 
-        {/* ─── 멤버 리스트 ─── */}
         <section css={listSection}>
           {loading ? (
             <p>로딩 중...</p>
@@ -154,11 +155,15 @@ export default function GroupStatistics() {
             members.map((m) => (
               <MemberList
                 key={m.user_id}
+                groupId={groupId}
+                groupName={groupName} 
+                userId={m.user_id}
                 name={m.nickname}
                 clovers={
-                  rankings.find((r) => r.user_id === m.user_id)?.total_clovers ||
-                  0
+                  rankings.find((r) => r.user_id === m.user_id)
+                    ?.total_clovers || 0
                 }
+                onRefresh={loadMembers}
               />
             ))
           )}
