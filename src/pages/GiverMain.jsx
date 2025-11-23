@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import Header from "../component/Giver_Header";
 import GroupList from "../component/GroupList";
 import { GetMembers } from "../api/group";
-
-// ✅ Users.jsx에서 export한 supabase를 그대로 가져와서 "현재 로그인 유저" 확인
-import { supabase } from "../api/Users"; 
+import { supabase } from "../api/supabaseClient";
+// import { supabase } from "../api/Users"; 
 // 경로는 네 프로젝트 구조에 맞게:
 // 예) Users.jsx가 src/api/Users.jsx 라면 "../api/Users"
 
