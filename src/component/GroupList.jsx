@@ -6,8 +6,12 @@ import { useNavigate } from "react-router-dom";
 import Clover from "../assets/clover_icon_list.png";
 import { Delete_Popup } from "./Delete_Popup";
 
+// API
+import { giveClover } from "../api/Hearts";
+import { DeleteMember } from "../api/group";
+
 const itemWrapper = css`
-  width: 354px;
+  width: 344px;
   height: 89px;
   flex-shrink: 0;
   background: #f0f0f0;
@@ -40,7 +44,7 @@ const leftBox = css`
 const rightBox = css`
   display: flex;
   align-items: center;
-  gap: 18px; /* 버튼 사이 간격 */
+  gap: 12px;
 `;
 
 const greenbtn = css`
@@ -67,26 +71,22 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function GroupList({ groupName }) {
+export default function GroupList({
+  groupId,
+  userId,
+  groupName,
+}) {
   const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
+  // ⭐ 가장 쉬운 방법: state 로 전달
   const goToGiverStatistics = () => {
-    navigate("/groupstatistics");
-  };
-
-  const openDeletePopup = () => {
-    setShowDeletePopup(true);
-  };
-
-  const handleConfirmDelete = () => {
-    // todo: 실제 삭제 로직 (API 호출, 상태 업데이트 등)
-    console.log(`${groupName} 삭제 실행`);
-    setShowDeletePopup(false);
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeletePopup(false);
+    navigate("/groupstatistics", {
+      state: {
+        groupId,
+        groupName
+      }
+    });
   };
 
   return (
@@ -101,7 +101,8 @@ export default function GroupList({ groupName }) {
           <button css={greenbtn} onClick={goToGiverStatistics}>
             관리하기
           </button>
-          <button css={redbtn} onClick={openDeletePopup}>
+
+          <button css={redbtn} onClick={() => setShowDeletePopup(true)}>
             삭제
           </button>
         </div>
@@ -110,8 +111,8 @@ export default function GroupList({ groupName }) {
       {showDeletePopup && (
         <Delete_Popup
           name={groupName}
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
+          onConfirm={() => setShowDeletePopup(false)}
+          onCancel={() => setShowDeletePopup(false)}
         />
       )}
     </>

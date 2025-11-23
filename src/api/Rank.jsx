@@ -1,43 +1,48 @@
-// 랭킹 보드
-
-import { supabase } from '../lib/supabaseClient'
+// src/api/Rank.jsx
+import { supabase } from "../lib/supabaseClient";
 
 export async function getGroupRankings(groupId) {
-    // 그룹 멤버 조회
-    const { data: members, error: memberError } = await supabase
-        .from('group_members')
-        .select(`
-            user_id,
-            profiles (
-                id,
-                nickname
-            )
-        `)
-        .eq('group_id', groupId)
 
-    if (memberError) throw memberError
+    // 1) 그룹 멤버 리스트 불러오기
+    const { data: members, error: memErr } = await supabase
+        .from("group_members")
+        .select("user_id")
+        .eq("group_id", groupId);
 
-    // 하트 데이터 조회
-    const { data: clovers, error: cloverError } = await supabase
-        .from('clovers')
-        .select('receiver_Id, clover_count')
-        .eq('groupId', groupId)
+    if (memErr) throw memErr;
 
-    if (cloverError) throw cloverError
+    const userIds = members.map(m => m.user_id);
+    if (userIds.length === 0) return [];
 
-    // 집계 및 정렬
-    const cloverSummary = clovers.reduce((acc, row) => {
-        acc[row.receiver_Id] = (acc[row.receiver_Id] || 0) + row.clover_count
-        return acc
-    }, {})
+    // 2) 프로필 닉네임 불러오기
+    const { data: profiles, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, nickname")
+        .in("id", userIds);
 
-    // 랭킹 데이터 생성
-    const rankings = members.map(member => ({
-        user_id: member.user_id,
-        user_name: member.profiles?.nickname || '알 수 없음',
-        total_clovers: cloverSummary[member.user_id] || 0
-    }))
+    if (pErr) throw pErr;
 
-    // 정렬된 배열 반환
-    return rankings.sort((a, b) => b.total_clovers - a.total_clovers)
+    const profileMap = {};
+    profiles.forEach(p => (profileMap[p.id] = p.nickname));
+
+    // 3) 클로버 불러오기
+    const { data: clovers, error: cErr } = await supabase
+        .from("clovers")
+        .select("receiver_id, clover_count")
+        .eq("group_id", groupId);
+
+    if (cErr) throw cErr;
+
+    const cloverSum = {};
+    clovers.forEach(c => {
+        cloverSum[c.receiver_id] =
+            (cloverSum[c.receiver_id] || 0) + c.clover_count;
+    });
+
+    // 4) 합쳐서 랭킹 배열 생성
+    return members.map(m => ({
+        user_id: m.user_id,
+        user_name: profileMap[m.user_id] || "이름 없음",
+        total_clovers: cloverSum[m.user_id] || 0,
+    })).sort((a, b) => b.total_clovers - a.total_clovers);
 }
