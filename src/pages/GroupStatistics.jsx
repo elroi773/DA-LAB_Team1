@@ -1,12 +1,18 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import Header from "../component/Giver_Header";
 import MemberList from "../component/MemberList";
+import { getGroupRankings } from "../api/Rank";
+import { getGroupMembers } from "../api/group";
 
+// ───────────────── CSS ───────────────────
 const wrapper = css`
   width: 100%;
   min-height: 100vh;
-  background: #cccccc; /* 밖 영역(모바일 외부) */
+  background: #cccccc;
   display: flex;
   justify-content: center;
 `;
@@ -20,11 +26,10 @@ const mobileScreen = css`
   position: relative;
 `;
 
-/* ───────────── 상단 그래프 영역 ───────────── */
 const graphSection = css`
   width: 100%;
   height: 300px;
-  background: linear-gradient(180deg, #FFF 11.06%, #80A867 73.56%);
+  background: linear-gradient(180deg, #fff 11.06%, #80a867 73.56%);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -44,7 +49,7 @@ const podiumItem = css`
   gap: 6px;
 `;
 
-const name = css`
+const nameStyle = css`
   font-size: 14px;
   font-weight: 600;
   color: #4b6a3b;
@@ -65,7 +70,6 @@ const countText = css`
   color: white;
 `;
 
-/* ───────────── 아래 리스트 카드 영역 ───────────── */
 const listSection = css`
   width: 100%;
   padding: 26px 0 40px;
@@ -78,44 +82,86 @@ const listSection = css`
   gap: 14px;
 `;
 
+// ───────────────── PAGE ───────────────────
 export default function GroupStatistics() {
-  const groupMembers = [
-    { id: 1, name: "오세영", count: 1, barHeight: 180 },
-    { id: 2, name: "장하은", count: 2, barHeight: 150 },
-    { id: 3, name: "우지영", count: 3, barHeight: 130 },
-    { id: 4, name: "김이레", count: 0, barHeight: 0 },
-  ];
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const podium = [
-    groupMembers[1], // 2등: 장하은
-    groupMembers[0], // 1등: 오세영
-    groupMembers[2], // 3등: 우지영
-  ];
+  // state가 없으면 메인으로 이동
+  if (!location.state) {
+    navigate("/giver-main");
+    return null;
+  }
+
+  const { groupId, groupName } = location.state;
+
+  const [rankings, setRankings] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ------------- 데이터 로드 --------------
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const rankingData = await getGroupRankings(groupId);
+        const memberData = await getGroupMembers(groupId);
+
+        setRankings(rankingData);
+        setMembers(memberData);
+      } catch (err) {
+        console.error("데이터 불러오기 실패:", err);
+      }
+      setLoading(false);
+    };
+
+    load();
+  }, [groupId]);
+
+  const podium = rankings.slice(0, 3);
 
   return (
     <div css={wrapper}>
       <div css={mobileScreen}>
         <Header />
 
-        {/* 상단 그래프 */}
+        {/* ─── 상단 PODIUM ─── */}
         <section css={graphSection}>
-          <div css={podiumWrapper}>
-            {podium.map((m) => (
-              <div key={m.id} css={podiumItem}>
-                <span css={name}>{m.name}</span>
-                <div css={bar} style={{ height: m.barHeight }}>
-                  <span css={countText}>{m.count}</span>
+          {loading ? (
+            <div>불러오는 중...</div>
+          ) : podium.length === 0 ? (
+            <h2>아직 클로버가 없어요 😢</h2>
+          ) : (
+            <div css={podiumWrapper}>
+              {podium.map((p) => (
+                <div key={p.user_id} css={podiumItem}>
+                  <span css={nameStyle}>{p.user_name}</span>
+                  <div css={bar} style={{ height: 80 + p.total_clovers * 15 }}>
+                    <span css={countText}>{p.total_clovers}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* 하단 리스트 */}
+        {/* ─── 멤버 리스트 ─── */}
         <section css={listSection}>
-          {groupMembers.map((m) => (
-            <MemberList key={m.id} groupName={m.name} />
-          ))}
+          {loading ? (
+            <p>로딩 중...</p>
+          ) : members.length === 0 ? (
+            <p>아직 멤버가 없어요.</p>
+          ) : (
+            members.map((m) => (
+              <MemberList
+                key={m.user_id}
+                name={m.nickname}
+                clovers={
+                  rankings.find((r) => r.user_id === m.user_id)?.total_clovers ||
+                  0
+                }
+              />
+            ))
+          )}
         </section>
       </div>
     </div>

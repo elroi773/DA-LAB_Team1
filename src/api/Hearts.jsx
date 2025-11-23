@@ -7,11 +7,11 @@ export async function giveClover(groupId, receiverId, cloverCount, message) {
     const { data, error } = await supabase
     .from('clovers')
     .insert([{ 
-        groupId: groupId, 
-        receiver_Id: receiverId, 
+        group_id: groupId, 
+        receiver_id: receiverId, 
         clover_count: cloverCount, 
-        message: message 
-    }])
+        message 
+    }])    
 
     if (error) {
         return { success: false, message: '하트 주기 실패' }
