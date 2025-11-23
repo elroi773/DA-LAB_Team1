@@ -76,21 +76,21 @@ export const Give_Clover_Popup = ({ name, onConfirm, onCancel }) => {
   const handleConfirm = () => {
     const trimmed = message.trim();
     if (!trimmed) return;
-    onConfirm?.(trimmed, name); // 필요하면 name도 같이 전달
+
+    onConfirm?.(1, trimmed); // ✅ 무조건 1개만 전송
     setMessage("");
   };
 
   return (
     <div css={overlay} onClick={onCancel}>
-      {/* 안쪽 클릭 시 닫히지 않도록 */}
       <div css={container} onClick={(e) => e.stopPropagation()}>
-        <p css={title}>칭찬메세지</p>
+        <p css={title}>{name}님에게 칭찬</p>
 
         <div css={inputRow}>
           <input
             css={inputStyle}
             type="text"
-            placeholder="칭찬입력"
+            placeholder="칭찬메세지 입력"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
