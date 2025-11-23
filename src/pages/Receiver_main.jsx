@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import Header from "../component/Header";
 import Before from "../component/Before_Ui";
@@ -7,8 +8,7 @@ const mobileWrapper = css`
   height: 100vh;
   max-width: 402px;
   margin: 0 auto;
-  background-color: #fff;
-
+  background-color: #ffffffff;
   display: flex;
   flex-direction: column;
 `;

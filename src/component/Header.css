@@ -91,3 +91,14 @@ margin-top: 25px;
   padding-top: 30px;
   width: 100%;
 }
+
+.error-msg {
+  color: #e74c3c;
+  font-size: 12px;
+  margin: 5px 0 0 24px;
+}
+
+.closemodal:disabled {
+  background: #c4c4c4;
+  cursor: not-allowed;
+}

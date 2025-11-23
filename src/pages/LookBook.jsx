@@ -1,12 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header.jsx";
 import Clover from "../assets/clover_complete.png";
+import { getCloverBook } from "../api/clover_join.jsx";
+import { getStoredUserId } from "../api/Users.jsx";
 
-// 더미 데이터
-const cloverCount = 10;
-const groupName = "리액트 스터디";
 const CARDS_PER_PAGE = 4;
 
 const mobileWrapper = css`
@@ -75,8 +75,58 @@ const arrowButton = css`
 
 export default function LookBook() {
   const [page, setPage] = useState(0);
+  const [cloverCount, setCloverCount] = useState(0);
+  const [groupName, setGroupName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const totalPages = Math.ceil(cloverCount / CARDS_PER_PAGE);
+  useEffect(() => {
+    async function fetchClovers() {
+      const userId = getStoredUserId();
+      if (!userId) {
+        navigate("/login");
+        return;
+      }
+
+      const cloverData = await getCloverBook(userId);
+
+      // location.state에서 특정 그룹 정보가 있으면 해당 그룹만 표시
+      const { groupId, groupName: passedGroupName } = location.state || {};
+
+      if (groupId) {
+        // 특정 그룹의 완성된 클로버 표시
+        const targetGroup = cloverData.find((g) => g.groupId === groupId);
+        if (targetGroup) {
+          setCloverCount(targetGroup.completedClovers);
+          setGroupName(passedGroupName || targetGroup.groupName);
+        } else {
+          setCloverCount(0);
+          setGroupName(passedGroupName || "알 수 없음");
+        }
+      } else {
+        // 전체 완성된 클로버 합계 표시
+        const totalCompleted = cloverData.reduce((sum, g) => sum + g.completedClovers, 0);
+        setCloverCount(totalCompleted);
+        setGroupName("전체 클로버");
+      }
+
+      setLoading(false);
+    }
+
+    fetchClovers();
+  }, [location.state, navigate]);
+
+  if (loading) {
+    return (
+      <div css={mobileWrapper}>
+        <Header />
+        <div css={container}>로딩 중...</div>
+      </div>
+    );
+  }
+
+  const totalPages = Math.ceil(cloverCount / CARDS_PER_PAGE) || 1;
 
   const handleNext = () => {
     setPage((prev) => (prev + 1) % totalPages);
@@ -99,16 +149,20 @@ export default function LookBook() {
       <div css={container}>
         <h1 css={h1Style}>{groupName}</h1>
 
-        <div css={grid}>
-          {currentPageClovers.map((idx) => (
-            <div key={idx} css={card}>
-              <img src={Clover} alt="클로버" css={cloverImg} />
-            </div>
-          ))}
-        </div>
+        {cloverCount === 0 ? (
+          <p>아직 완성된 클로버가 없어요</p>
+        ) : (
+          <div css={grid}>
+            {currentPageClovers.map((idx) => (
+              <div key={idx} css={card}>
+                <img src={Clover} alt="클로버" css={cloverImg} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 클로버가 4개 초과일 때만 화살표 보이게 */}
-        {totalPages > 1 && (
+        {totalPages > 1 && cloverCount > CARDS_PER_PAGE && (
           <button type="button" css={arrowButton} onClick={handleNext}>
             ›
           </button>

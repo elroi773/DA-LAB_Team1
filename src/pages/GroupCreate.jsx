@@ -189,11 +189,16 @@ export default function GroupCreate() {
       return;
     }
 
+    if (!previewCode) {
+      setErrorMsg("코드 생성 버튼을 눌러주세요.");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // ✅ creatorId 안 넘기고 groupName만 전달
-      const res = await Space(groupName.trim());
+      // ✅ groupName과 previewCode 전달
+      const res = await Space(groupName.trim(), previewCode);
 
       if (!res.success) {
         console.error(res.error);
