@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header";
 import GroupCreateLogo from "../assets/group_clover.png";
 
-// ✅ Space API import (경로는 프로젝트 구조에 맞게 조정)
+// Space API
 import { Space } from "../api/space.jsx";
 
 const mobileWrapper = css`
@@ -122,25 +122,17 @@ export default function GroupCreate() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // UX용: 미리 코드 생성(실제 저장은 생성하기에서 Space 호출)
+  // UX: 미리 코드 생성
   const handleGenerateCodePreview = () => {
-    let code_rad = Math.random().toString(36);
-    code_rad = code_rad.substring(2, 8);
-    setPreviewCode(code_rad.toUpperCase());
+    let code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setPreviewCode(code);
   };
 
-  // 그룹 생성 (Space API 호출)
+  // 그룹 생성
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-
-    const creatorId = localStorage.getItem("user_id"); // 너가 쓰는 키로 수정 가능
-
-    if (!creatorId) {
-      setErrorMsg("로그인이 필요합니다. user_id가 없습니다.");
-      return;
-    }
 
     if (!groupName.trim()) {
       setErrorMsg("그룹 이름을 입력해주세요.");
@@ -150,7 +142,8 @@ export default function GroupCreate() {
     try {
       setLoading(true);
 
-      const res = await Space(creatorId, groupName.trim());
+      // ⭐ creatorId는 프론트에서 보내지 않음 (DB 트리거가 자동으로 세팅)
+      const res = await Space(groupName.trim());
 
       if (!res.success) {
         console.error(res.error);
@@ -158,12 +151,8 @@ export default function GroupCreate() {
         return;
       }
 
-      // 성공
-      setSuccessMsg(
-        `그룹 생성 완료! 참여코드: ${res.group.code}`
-      );
+      setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
-      // 잠깐 보여주고 메인 이동
       setTimeout(() => {
         navigate("/");
       }, 600);
@@ -194,12 +183,7 @@ export default function GroupCreate() {
 
         <h1>코드 생성</h1>
         <div css={codeCreateRow}>
-          <input
-            type="text"
-            placeholder="코드 생성"
-            value={previewCode}
-            readOnly
-          />
+          <input type="text" placeholder="코드 생성" value={previewCode} readOnly />
           <button
             type="button"
             onClick={handleGenerateCodePreview}
