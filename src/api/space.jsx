@@ -5,7 +5,7 @@ import { supabase } from './supabaseClient.js'
 
 //Space 생성
 export async function Space(group_name) {
-    // ✅ 현재 로그인 유저를 auth에서 직접 가져와서 100% 일치 보장
+    // 현재 로그인 유저를 auth에서 직접 가져와서 100% 일치 보장
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     const user = userData?.user;
   
@@ -15,7 +15,7 @@ export async function Space(group_name) {
   
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
   
-    // creatorId는 보내지 마! DB default(auth.uid())가 자동으로 넣음
+    //  DB default(auth.uid())가 자동으로 넣음
     const { data, error } = await supabase
       .from("groups")
       .insert([{ group_name, code }])

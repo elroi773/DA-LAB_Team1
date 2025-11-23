@@ -34,23 +34,34 @@ export async function GetGroups(group_id) {
 
 //특정 학생이 그룹을 조회한다 내가 들어가있는 곳
 export async function GetMembers(user_id) {
-    const{data,error} = await supabase.from('group_members').select(`group_id, role, clovers!inner(receiver_id, clover_count, message)`).eq('user_id',user_id)
-    if(error){
-        console.error('유저의 그룹 조회 실패: ', error)
-        return []
+    const { data: members, error } = await supabase
+      .from("group_members")
+      .select("group_id, role")
+      .eq("user_id", user_id);
+  
+    if (error) {
+      console.error("유저의 그룹 조회 실패:", error);
+      return { success: false, groups: [] };
     }
-    return{
-        success: true,
-        groups: data.map(row => ({
-            group_id: row.group_id,
-            role: row.role,
-            clovers: row.clovers?.map(c => ({
-                clover_count: c.clover_count,
-                message: c.message
-            })) || []
-        }))
+  
+    const groups = [];
+  
+    for (const m of members) {
+      const { data: clovers } = await supabase
+        .from("clovers")
+        .select("clover_count, message")
+        .eq("group_id", m.group_id);
+  
+      groups.push({
+        group_id: m.group_id,
+        role: m.role,
+        clovers: clovers || [],
+      });
     }
-}
+  
+    return { success: true, groups };
+  }
+  
 
 //특정 그룹 멤버 삭제 
 export async function DeleteMember(group_id,user_id) {

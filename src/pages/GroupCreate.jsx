@@ -149,7 +149,6 @@ export default function GroupCreate() {
 
     loadSession();
 
-    // (선택) 로그인/로그아웃 실시간 반영
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
