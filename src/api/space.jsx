@@ -4,24 +4,43 @@ import { useState } from 'react'
 import { supabase } from './supabaseClient.js'
 
 //Space 생성
-export async function Space(creatorId,group_name){
-    let code_rad = Math.random().toString(36);
-    code_rad = code_rad.substring(2,8);
-    const code = code_rad.toUpperCase();
-
-    const {data, error} = await supabase.from('groups').insert([{
-        creatorId,
-        group_name,
-        code
-    }]).select().single();
-    // .single()은 값이 반드시 1개일 때 true 0이거나 2개 이상이면 error
-
-    if(error){
-        return { success: false, error };
-    }else{
-        return {success: true, group: data};
+export async function Space(group_name) {
+    // ✅ 현재 로그인 유저를 auth에서 직접 가져와서 100% 일치 보장
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    const user = userData?.user;
+  
+    if (userErr || !user) {
+      return { success: false, error: userErr || "로그인이 필요합니다." };
     }
-}
+  
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  
+    // creatorId는 보내지 마! DB default(auth.uid())가 자동으로 넣음
+    const { data, error } = await supabase
+      .from("groups")
+      .insert([{ group_name, code }])
+      .select("*")
+      .maybeSingle(); // single() 절대 금지
+  
+    if (error) {
+      return { success: false, error };
+    }
+
+    if (!data) {
+      const { data: again, error: againErr } = await supabase
+        .from("groups")
+        .select("*")
+        .eq("code", code)
+        .maybeSingle();
+        
+      if (againErr || !again) {
+        return { success: false, error: againErr || "생성 후 조회 실패" };
+      }
+      return { success: true, group: again };
+    }
+  
+    return { success: true, group: data };
+  }
 //참여 코드 생성
 export async function getSpaceCode(code) {
     const {data, error} = await supabase.from('groups').select('*').eq('code',code.toUpperCase()).single();
