@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header";
 import GroupCreateLogo from "../assets/group_clover.png";
 
-// ✅ Space API import (경로는 프로젝트 구조에 맞게 조정)
+// ✅ Space API
 import { Space } from "../api/space.jsx";
 // ✅ supabase client (세션 확인용)
 import { supabase } from "../api/supabaseClient.js";
@@ -124,6 +124,46 @@ export default function GroupCreate() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+
+  // ✅ 페이지 들어오면 세션 확인
+  useEffect(() => {
+    const loadSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error("세션 불러오기 실패:", error);
+        setUser(null);
+        setErrorMsg("세션 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
+        return;
+      }
+
+      const sessionUser = data?.session?.user ?? null;
+      setUser(sessionUser);
+
+      if (!sessionUser) {
+        setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
+      }
+    };
+
+    loadSession();
+
+    // (선택) 로그인/로그아웃 실시간 반영
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        if (!session?.user) {
+          setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
+        } else {
+          setErrorMsg("");
+        }
+      }
+    );
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
   // ✅ 현재 로그인 유저 세션 상태
   const [user, setUser] = useState(null);
 
@@ -178,10 +218,9 @@ export default function GroupCreate() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    const creatorId = localStorage.getItem("user_id"); // 너가 쓰는 키로 수정 가능
-
-    if (!creatorId) {
-      setErrorMsg("로그인이 필요합니다. user_id가 없습니다.");
+    // ✅ 로그인 세션 없으면 생성 불가
+    if (!user) {
+      setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
       return;
     }
 
@@ -193,7 +232,8 @@ export default function GroupCreate() {
     try {
       setLoading(true);
 
-      const res = await Space(creatorId, groupName.trim());
+      // ✅ creatorId 안 넘기고 groupName만 전달
+      const res = await Space(groupName.trim());
 
       if (!res.success) {
         console.error(res.error);
@@ -202,9 +242,7 @@ export default function GroupCreate() {
       }
 
       // 성공
-      setSuccessMsg(
-        `그룹 생성 완료! 참여코드: ${res.group.code}`
-      );
+      setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
       setTimeout(() => {
         navigate("/");
