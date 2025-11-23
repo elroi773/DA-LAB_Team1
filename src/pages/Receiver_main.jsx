@@ -34,6 +34,7 @@ const messageContainer = css`
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-bottom: 50px;
 `;
 
 const messageImage = css`
@@ -53,6 +54,13 @@ const centerText = css`
   pointer-events: none;
 `;
 
+const contentWrapper = css`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+`;
 
 
 
@@ -63,16 +71,17 @@ export default function ReceiverMain() {
 
       <Before />
 
-      <div css={bottomWrapper}>
-        <p css={bottomLabel}>칭찬메세지</p>
+        
+            <div css={bottomWrapper}>
+            <p css={bottomLabel}>칭찬메세지</p>
 
-        <div css={messageContainer}>
-          <img src={MessageNo} alt="No messages" css={messageImage} />
+                <div css={messageContainer}>
+                <img src={MessageNo} alt="No messages" css={messageImage} />
 
-          {/* 이미지 중앙에 텍스트 겹치기 */}
-          <p css={centerText}>아직 칭찬을 안받았어요</p>
-        </div>
-      </div>
+                {/* 이미지 중앙에 텍스트 겹치기 */}
+                <p css={centerText}>아직 칭찬을 안받았어요</p>
+                </div>
+            </div>
     </div>
   );
 }
