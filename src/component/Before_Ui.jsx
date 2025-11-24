@@ -1,17 +1,50 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import clover_img from "../assets/Before.svg";
 import RightBtn from "../assets/rightbtn.svg";
 import LeftBtn from "../assets/leftbtn.svg";
+import Stamp1 from "../assets/stamp1.svg";
+import Stamp2 from "../assets/stamp2.svg";
+import Stamp3 from "../assets/stamp3.svg";
+import Stamp4 from "../assets/stamp4.svg";
 import { getCloverBook } from "../api/clover_join.jsx";
 import { getStoredUserId } from "../api/Users.jsx";
 import { supabase } from "../api/supabaseClient.js";
 
-export default function Before() {
+// 칭찬 횟수에 따른 stamp 이미지 매핑 (1~3개: stamp1~3, 4개 완성)
+const stampImages = {
+  0: null,
+  1: Stamp1,
+  2: Stamp2,
+  3: Stamp3,
+};
+
+// 칭찬 횟수에 따라 적절한 stamp 이미지 반환
+function getStampImage(cloverCount) {
+  // 4개마다 완성되므로 나머지로 현재 진행 상태 계산
+  const currentProgress = cloverCount % 4;
+  return stampImages[currentProgress];
+}
+
+// 가장 최근 메시지 가져오기
+function getLatestMessage(clovers) {
+  if (!clovers || clovers.length === 0) return null;
+  // created_at이 없으면 마지막 항목 반환
+  if (clovers[0]?.created_at) {
+    const sorted = [...clovers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sorted[0]?.message || null;
+  }
+  // created_at이 없으면 마지막 항목의 메시지 반환
+  return clovers[clovers.length - 1]?.message || null;
+}
+
+export default function Before({ onGroupData }) {
   const [groups, setGroups] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchGroups() {
@@ -21,24 +54,39 @@ export default function Before() {
         return;
       }
 
-      // 유저가 가입한 그룹 목록 가져오기
-      const { data, error } = await supabase
+      // 1. 유저가 가입한 그룹 목록 가져오기
+      const { data: memberData, error: memberError } = await supabase
         .from("group_members")
         .select("group_id, groups(id, group_name)")
         .eq("user_id", userId);
 
-      if (error) {
-        console.error("그룹 조회 실패:", error);
+      if (memberError) {
+        console.error("그룹 조회 실패:", memberError);
         setLoading(false);
         return;
       }
 
-      const groupList = data
+      // 2. 클로버(칭찬) 데이터 가져오기
+      const cloverData = await getCloverBook(userId);
+
+      // 3. 그룹 목록과 클로버 데이터 병합
+      const groupList = memberData
         .filter((item) => item.groups)
-        .map((item) => ({
-          id: item.groups.id,
-          name: item.groups.group_name,
-        }));
+        .map((item) => {
+          const groupId = item.groups.id;
+          // 해당 그룹의 클로버 데이터 찾기
+          const cloverInfo = cloverData.find((c) => c.groupId === groupId);
+
+          return {
+            id: groupId,
+            name: item.groups.group_name,
+            totalCount: cloverInfo?.totalCount || 0,
+            completedClovers: cloverInfo?.completedClovers || 0,
+            clovers: cloverInfo?.clovers || [],
+            stampImage: getStampImage(cloverInfo?.totalCount || 0),
+            latestMessage: getLatestMessage(cloverInfo?.clovers),
+          };
+        });
 
       setGroups(groupList);
       setLoading(false);
@@ -47,12 +95,29 @@ export default function Before() {
     fetchGroups();
   }, []);
 
+  // 현재 그룹 정보를 부모에게 전달
+  useEffect(() => {
+    if (groups.length > 0 && onGroupData) {
+      onGroupData(groups[currentIndex]);
+    }
+  }, [currentIndex, groups, onGroupData]);
+
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? groups.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === groups.length - 1 ? 0 : prev + 1));
+  };
+
+  // 클로버 박스 클릭 시 LookBook으로 이동
+  const goToLookBook = () => {
+    if (groups.length > 0) {
+      const currentGroup = groups[currentIndex];
+      navigate("/look-book", {
+        state: { groupId: currentGroup.id, groupName: currentGroup.name },
+      });
+    }
   };
 
   if (loading) {
@@ -83,6 +148,7 @@ export default function Before() {
 
   // 가입된 그룹이 있을 때
   const currentGroup = groups[currentIndex];
+  const hasClover = currentGroup.totalCount > 0;
 
   return (
     <div css={mobileWrapper}>
@@ -96,9 +162,20 @@ export default function Before() {
 
           <div css={boxWithTitle}>
             <p css={groupTitle}>{currentGroup.name}</p>
-            <div css={box}>
-              <img src={clover_img} alt="clover" css={image} />
-              <p css={text}>아직 칭찬을 안 받았어요</p>
+            <div css={box} onClick={goToLookBook}>
+              {hasClover && currentGroup.stampImage ? (
+                <>
+                  <img src={currentGroup.stampImage} alt="stamp" css={stampImage} />
+                  {currentGroup.completedClovers > 0 && (
+                    <p css={completedText}>완성 클로버: {currentGroup.completedClovers}개</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <img src={clover_img} alt="clover" css={image} />
+                  <p css={text}>아직 칭찬을 안 받았어요</p>
+                </>
+              )}
             </div>
           </div>
 
@@ -114,7 +191,6 @@ export default function Before() {
 
 const mobileWrapper = css`
   width: 100vw;
-  height: 100vh;
   max-width: 402px;
   margin: 0 auto;
   background-color: #fff;
@@ -126,7 +202,7 @@ const mobileWrapper = css`
 
 /* 상단 아이콘 영역 높이를 조절하고 싶으면 여기를 조절 */
 const headerArea = css`
-  height: 80px; 
+  height: 80px;
   flex-shrink: 0;
 `;
 
@@ -146,7 +222,14 @@ const box = css`
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.25);
-  margin-bottom: 200px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px 0 rgba(0, 0, 0, 0.3);
+  }
 `;
 
 const image = css`
@@ -156,10 +239,23 @@ const image = css`
   margin-bottom: 16px;
 `;
 
+const stampImage = css`
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+`;
+
 const text = css`
   font-size: 14px;
   color: #444;
   text-align: center;
+`;
+
+const completedText = css`
+  font-size: 12px;
+  color: #78a366;
+  margin-top: 8px;
+  font-weight: 600;
 `;
 
 const contentWrapper = css`
@@ -188,7 +284,6 @@ const arrowBtn = css`
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
-  margin-bottom: 170px;
 
   &:hover {
     opacity: 1;

@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header.jsx";
 import Clover from "../assets/clover_complete.png";
+import RightBtn from "../assets/rightbtn.svg";
+import LeftBtn from "../assets/leftbtn.svg";
 import { getCloverBook } from "../api/clover_join.jsx";
 import { getStoredUserId } from "../api/Users.jsx";
 
-const CARDS_PER_PAGE = 4;
+const CARDS_PER_PAGE = 4; // 2x2 그리드
 
 const mobileWrapper = css`
   width: 100vw;
@@ -15,62 +17,98 @@ const mobileWrapper = css`
   max-width: 402px;
   margin: 0 auto;
   background-color: #fff;
+  display: flex;
+  flex-direction: column;
 `;
 
 const container = css`
-  position: relative; /* 화살표 버튼 위치 기준 */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 80px;
+  padding-top: 40px;
 `;
 
-const h1Style = css`
-  color: #000;
+const titleStyle = css`
+  color: #304125;
   font-family: Pretendard, sans-serif;
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  text-align: center;
+`;
+
+const contentWrapper = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  padding: 0 20px;
 `;
 
 const grid = css`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 20px;
 `;
 
 const card = css`
   width: 130px;
-  height: 170px;
+  height: 150px;
   border-radius: 14px;
   background-color: #ffffff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
 `;
 
 const cloverImg = css`
-  width: 70px;
+  width: 80px;
   height: auto;
 `;
 
-const arrowButton = css`
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background-color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+const arrowBtn = css`
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const arrowPlaceholder = css`
+  width: 36px;
+  height: 36px;
+`;
+
+const emptyCard = css`
+  width: 130px;
+  height: 150px;
+  border-radius: 14px;
+  background-color: #f5f5f5;
+  border: 2px dashed #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
+`;
+
+const pageIndicator = css`
+  margin-top: 30px;
+  font-size: 14px;
+  color: #888;
+`;
+
+const emptyMessage = css`
+  font-size: 16px;
+  color: #888;
+  text-align: center;
+  margin-top: 60px;
 `;
 
 export default function LookBook() {
@@ -121,51 +159,95 @@ export default function LookBook() {
     return (
       <div css={mobileWrapper}>
         <Header />
-        <div css={container}>로딩 중...</div>
+        <div css={container}>
+          <p>로딩 중...</p>
+        </div>
       </div>
     );
   }
 
   const totalPages = Math.ceil(cloverCount / CARDS_PER_PAGE) || 1;
 
+  const handlePrev = () => {
+    setPage((prev) => (prev === 0 ? totalPages - 1 : prev - 1));
+  };
+
   const handleNext = () => {
     setPage((prev) => (prev + 1) % totalPages);
   };
 
-  // 전체 클로버를 하나의 배열
-  const allClovers = Array.from({ length: cloverCount }, (_, index) => index);
+  // 현재 페이지에서 보여줄 클로버 개수 계산
+  const startIdx = page * CARDS_PER_PAGE;
+  const endIdx = Math.min(startIdx + CARDS_PER_PAGE, cloverCount);
+  const currentPageCloverCount = endIdx - startIdx;
 
-  // 현재 페이지에서 보여줄 범위를 계산
-  const first = page * CARDS_PER_PAGE;
-  const last = first + CARDS_PER_PAGE;
-
-  // 실제 보여줄 클로버 4개만 잘라냄
-  const currentPageClovers = allClovers.slice(first, last);
+  // 4칸 그리드를 채우기 위한 배열 생성
+  const gridItems = [];
+  for (let i = 0; i < CARDS_PER_PAGE; i++) {
+    if (i < currentPageCloverCount) {
+      gridItems.push({ type: "clover", key: startIdx + i });
+    } else {
+      gridItems.push({ type: "empty", key: `empty-${i}` });
+    }
+  }
 
   return (
     <div css={mobileWrapper}>
       <Header />
-      <br />
+
       <div css={container}>
-        <h1 css={h1Style}>{groupName}</h1>
+        <h1 css={titleStyle}>{groupName}</h1>
 
         {cloverCount === 0 ? (
-          <p>아직 완성된 클로버가 없어요</p>
+          <p css={emptyMessage}>아직 완성된 클로버가 없어요</p>
         ) : (
-          <div css={grid}>
-            {currentPageClovers.map((idx) => (
-              <div key={idx} css={card}>
-                <img src={Clover} alt="클로버" css={cloverImg} />
-              </div>
-            ))}
-          </div>
-        )}
+          <>
+            <div css={contentWrapper}>
+              {/* 왼쪽 버튼 - 페이지가 2개 이상일 때만 표시 */}
+              {totalPages > 1 ? (
+                <img
+                  src={LeftBtn}
+                  alt="이전"
+                  css={arrowBtn}
+                  onClick={handlePrev}
+                />
+              ) : (
+                <div css={arrowPlaceholder} />
+              )}
 
-        {/* 클로버가 4개 초과일 때만 화살표 보이게 */}
-        {totalPages > 1 && cloverCount > CARDS_PER_PAGE && (
-          <button type="button" css={arrowButton} onClick={handleNext}>
-            ›
-          </button>
+              {/* 2x2 그리드 */}
+              <div css={grid}>
+                {gridItems.map((item) =>
+                  item.type === "clover" ? (
+                    <div key={item.key} css={card}>
+                      <img src={Clover} alt="완성된 클로버" css={cloverImg} />
+                    </div>
+                  ) : (
+                    <div key={item.key} css={emptyCard} />
+                  )
+                )}
+              </div>
+
+              {/* 오른쪽 버튼 - 페이지가 2개 이상일 때만 표시 */}
+              {totalPages > 1 ? (
+                <img
+                  src={RightBtn}
+                  alt="다음"
+                  css={arrowBtn}
+                  onClick={handleNext}
+                />
+              ) : (
+                <div css={arrowPlaceholder} />
+              )}
+            </div>
+
+            {/* 페이지 표시 */}
+            {totalPages > 1 && (
+              <p css={pageIndicator}>
+                {page + 1} / {totalPages}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

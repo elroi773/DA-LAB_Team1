@@ -1,5 +1,5 @@
 // src/api/Rank.jsx
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "./supabaseClient.js";
 
 export async function getGroupRankings(groupId) {
   if (!groupId) return [];

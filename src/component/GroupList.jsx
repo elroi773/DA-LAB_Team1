@@ -67,12 +67,12 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function GroupList({ groupName }) {
+export default function GroupList({ groupId, groupName }) {
   const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   const goToGiverStatistics = () => {
-    navigate("/groupstatistics");
+    navigate("/groupstatistics", { state: { groupId, groupName } });
   };
 
   const openDeletePopup = () => {

@@ -149,6 +149,7 @@ export default function GroupCreate() {
 
     loadSession();
 
+    // (선택) 로그인/로그아웃 실시간 반영
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -189,16 +190,11 @@ export default function GroupCreate() {
       return;
     }
 
-    if (!previewCode) {
-      setErrorMsg("코드 생성 버튼을 눌러주세요.");
-      return;
-    }
-
     try {
       setLoading(true);
 
-      // ✅ groupName과 previewCode 전달
-      const res = await Space(groupName.trim(), previewCode);
+      // ✅ previewCode도 함께 전달 (없으면 Space에서 자동 생성)
+      const res = await Space(groupName.trim(), previewCode || null);
 
       if (!res.success) {
         console.error(res.error);

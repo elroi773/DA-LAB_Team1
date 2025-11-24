@@ -32,9 +32,13 @@ function getStampImage(cloverCount) {
 // 가장 최근 메시지 가져오기
 function getLatestMessage(clovers) {
   if (!clovers || clovers.length === 0) return null;
-  // created_at 기준으로 가장 최근 클로버의 메시지 반환
-  const sorted = [...clovers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  return sorted[0]?.message || null;
+  // created_at이 있으면 정렬해서 반환
+  if (clovers[0]?.created_at) {
+    const sorted = [...clovers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sorted[0]?.message || null;
+  }
+  // created_at이 없으면 마지막 항목의 메시지 반환
+  return clovers[clovers.length - 1]?.message || null;
 }
 
 export default function Group() {

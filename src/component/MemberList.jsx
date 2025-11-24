@@ -1,16 +1,19 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import { useState } from "react";
-// import { useNavigate } from "react-router-dom"; // 지금은 안 쓰면 주석 처리해도 됨
 
 import Clover from "../assets/clover_icon_list.png";
 import { Delete_Popup } from "./Delete_Popup";
 import { Give_Clover_Popup } from "./Give_Clover_Popup";
 
+// API
+import { DeleteMember } from "../api/group";
+import { giveClover } from "../api/Hearts";
+
+/* ───────────── CSS ───────────── */
 const itemWrapper = css`
-  width: 354px;
+  width: 314px;
   height: 89px;
-  flex-shrink: 0;
   background: #f0f0f0;
   border-radius: 5px;
   padding: 14px 16px;
@@ -25,7 +28,7 @@ const leftBox = css`
   gap: 12px;
 
   & img {
-    background-color: white;
+    background: white;
     border-radius: 50%;
     width: 31px;
     height: 32px;
@@ -41,7 +44,7 @@ const leftBox = css`
 const rightBox = css`
   display: flex;
   align-items: center;
-  gap: 18px; /* 버튼 사이 간격 */
+  gap: 18px;
 `;
 
 const greenbtn = css`
@@ -68,38 +71,42 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function GroupList({ groupName }) {
-  // const navigate = useNavigate();
+/* ───────────── COMPONENT ───────────── */
+export default function MemberList({
+  groupId,
+  groupName,
+  userId,
+  name,
+  clovers,
+  onRefresh,   // ⭐ 삭제/칭찬 후 부모 컴포넌트 refresh
+}) {
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [showGivePopup, setShowGivePopup] = useState(false);
 
-  // 칭찬주기 → 팝업 오픈
-  const giveclover = () => {
-    setShowGivePopup(true);
+  /* ───────────────── 삭제 처리 ───────────────── */
+  const handleDelete = async () => {
+    const res = await DeleteMember(groupId, userId);
+
+    if (res.success) {
+      alert("삭제되었습니다.");
+      setShowDeletePopup(false);
+      onRefresh(); // ⭐ 부모 컴포넌트 새로고침
+    } else {
+      alert("삭제 실패: " + res.message);
+    }
   };
 
-  const openDeletePopup = () => {
-    setShowDeletePopup(true);
-  };
-
-  const handleConfirmDelete = () => {
-    console.log(`${groupName} 삭제 실행`);
-    setShowDeletePopup(false);
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeletePopup(false);
-  };
-
-  // 칭찬 팝업에서 확인 눌렀을 때
-  const handleConfirmGive = (message, name) => {
-    console.log(`${name}에게 보낸 칭찬: ${message}`);
-    // TODO: 여기서 API 호출 / Supabase 저장 등 처리
-    setShowGivePopup(false);
-  };
-
-  const handleCancelGive = () => {
-    setShowGivePopup(false);
+  /* ───────────────── 칭찬 처리 ───────────────── */
+  const handleGiveClover = async (message) => {
+    // Give_Clover_Popup에서 message만 전달됨, count는 기본값 1
+    const res = await giveClover(groupId, userId, 1, message);
+    if (res.success) {
+      alert("칭찬이 전송되었습니다!");
+      setShowGivePopup(false);
+      onRefresh();
+    } else {
+      alert("칭찬 실패: " + res.message);
+    }
   };
 
   return (
@@ -107,32 +114,34 @@ export default function GroupList({ groupName }) {
       <div css={itemWrapper}>
         <div css={leftBox}>
           <img src={Clover} alt="clover icon" />
-          <span>{groupName}</span>
+          <span>{name}</span>
         </div>
 
         <div css={rightBox}>
-          <button css={greenbtn} onClick={giveclover}>
+          <button css={greenbtn} onClick={() => setShowGivePopup(true)}>
             칭찬주기
           </button>
-          <button css={redbtn} onClick={openDeletePopup}>
+          <button css={redbtn} onClick={() => setShowDeletePopup(true)}>
             삭제
           </button>
         </div>
       </div>
 
+      {/* 삭제 팝업 */}
       {showDeletePopup && (
         <Delete_Popup
-          name={groupName}
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
+          name={name}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeletePopup(false)}
         />
       )}
 
+      {/* 칭찬 팝업 */}
       {showGivePopup && (
         <Give_Clover_Popup
-          name={groupName}
-          onConfirm={handleConfirmGive}
-          onCancel={handleCancelGive}
+          name={name}
+          onConfirm={handleGiveClover}   // count, message 전달됨
+          onCancel={() => setShowGivePopup(false)}
         />
       )}
     </>
