@@ -4,16 +4,17 @@ import { useState } from 'react'
 import { supabase } from './supabaseClient.js'
 
 //Space 생성
-export async function Space(group_name) {
+export async function Space(group_name, previewCode = null) {
     // 현재 로그인 유저를 auth에서 직접 가져와서 100% 일치 보장
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     const user = userData?.user;
-  
+
     if (userErr || !user) {
       return { success: false, error: userErr || "로그인이 필요합니다." };
     }
-  
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // previewCode가 있으면 사용, 없으면 새로 생성
+    const code = previewCode || Math.random().toString(36).substring(2, 8).toUpperCase();
   
     //  DB default(auth.uid())가 자동으로 넣음
     const { data, error } = await supabase
@@ -52,9 +53,22 @@ export async function getSpaceCode(code) {
 }
 //Space 참여
 export async function JoinSpace(userId, code) {
-    const { data: group, error: groupError } = await supabase.from('groups').select('*').eq('code',code.toUpperCase()).single();
-    if (groupError || !group){
-        return {success: false, error: "유효하지 않은 코드"};
+    console.log('JoinSpace 호출:', { userId, code: code.toUpperCase() });
+
+    const { data: group, error: groupError } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .maybeSingle();
+
+    console.log('그룹 조회 결과:', { group, groupError });
+
+    if (groupError) {
+        console.error('그룹 조회 에러:', groupError);
+        return {success: false, error: "그룹 조회 중 오류가 발생했습니다"};
+    }
+    if (!group){
+        return {success: false, error: "유효하지 않은 코드입니다"};
     }
     //이미 가입한 상태인지 확인
     const {data: ingroup} = await supabase.from('group_members').select(`*`).eq('group_id',group.id).eq('user_id',userId).maybeSingle();

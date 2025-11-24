@@ -1,65 +1,291 @@
-import Beforeimg from "../assets/Before.svg";
-import "./Before_Ui.css";
+/** @jsxImportSource @emotion/react */
+import { css } from "@emotion/react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import clover_img from "../assets/Before.svg";
+import RightBtn from "../assets/rightbtn.svg";
+import LeftBtn from "../assets/leftbtn.svg";
+import Stamp1 from "../assets/stamp1.svg";
+import Stamp2 from "../assets/stamp2.svg";
+import Stamp3 from "../assets/stamp3.svg";
+import Stamp4 from "../assets/stamp4.svg";
+import { getCloverBook } from "../api/clover_join.jsx";
+import { getStoredUserId } from "../api/Users.jsx";
+import { supabase } from "../api/supabaseClient.js";
 
-export default function Before({ content = "아직 참여한 그룹이 없어요!" }) {
-  return (
-    <>
-      <div className="box">
-        <div className="boxmain">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="155"
-          height="158"
-          viewBox="0 0 155 158"
-          fill="none"
-          className="cloverimg"
-        >
-          <path
-            d="M82.5758 30.7935C94.8286 47.7723 95.7017 77.8142 79.0523 90.3094C62.4029 102.805 34.5359 93.0215 22.283 76.0428C10.0301 59.064 13.5942 35.1707 30.2436 22.6754C46.893 10.1802 70.3229 13.8148 82.5758 30.7935Z"
-            fill="#80A867"
-          />
-          <path
-            d="M72.2821 30.7427C60.0292 47.7215 59.1561 77.7634 75.8055 90.2586C92.4549 102.754 120.322 92.9707 132.575 75.992C144.828 59.0133 141.264 35.1199 124.614 22.6246C107.965 10.1294 84.5349 13.764 72.2821 30.7427Z"
-            fill="#80A867"
-          />
-          <path
-            d="M72.2821 127.235C60.0292 110.257 59.1561 80.2146 75.8055 67.7194C92.4549 55.2242 120.322 65.0073 132.575 81.986C144.828 98.9648 141.264 122.858 124.614 135.353C107.965 147.849 84.5349 144.214 72.2821 127.235Z"
-            fill="#80A867"
-          />
-          <path
-            d="M82.4786 127.235C94.7314 110.257 95.6045 80.2146 78.9551 67.7194C62.3057 55.2242 34.4386 65.0073 22.1858 81.986C9.93291 98.9648 13.497 122.858 30.1464 135.353C46.7958 147.849 70.2257 144.214 82.4786 127.235Z"
-            fill="#80A867"
-          />
-          <path
-            d="M95 56.5C96.6609 56.5 98.2784 57.7582 99.5098 60.0449C100.73 62.3113 101.5 65.4765 101.5 69C101.5 72.5235 100.73 75.6887 99.5098 77.9551C98.2784 80.2418 96.6609 81.5 95 81.5C93.3391 81.5 91.7216 80.2418 90.4902 77.9551C89.27 75.6887 88.5 72.5235 88.5 69C88.5 65.4765 89.27 62.3113 90.4902 60.0449C91.7216 57.7582 93.3391 56.5 95 56.5Z"
-            fill="white"
-            stroke="#304125"
-          />
-          <path
-            d="M97.5 60.5C98.4512 60.5 99.4466 61.2841 100.234 62.8594C101.007 64.405 101.5 66.5755 101.5 69C101.5 71.4245 101.007 73.595 100.234 75.1406C99.4466 76.7159 98.4512 77.5 97.5 77.5C96.5488 77.5 95.5534 76.7159 94.7656 75.1406C93.9928 73.595 93.5 71.4245 93.5 69C93.5 66.5755 93.9928 64.405 94.7656 62.8594C95.5534 61.2841 96.5488 60.5 97.5 60.5Z"
-            fill="#304125"
-            stroke="#304125"
-          />
-          <path
-            d="M67 56.5C68.6609 56.5 70.2784 57.7582 71.5098 60.0449C72.73 62.3113 73.5 65.4765 73.5 69C73.5 72.5235 72.73 75.6887 71.5098 77.9551C70.2784 80.2418 68.6609 81.5 67 81.5C65.3391 81.5 63.7216 80.2418 62.4902 77.9551C61.27 75.6887 60.5 72.5235 60.5 69C60.5 65.4765 61.27 62.3113 62.4902 60.0449C63.7216 57.7582 65.3391 56.5 67 56.5Z"
-            fill="white"
-            stroke="#304125"
-          />
-          <path
-            d="M69.5 60.5C70.4512 60.5 71.4466 61.2841 72.2344 62.8594C73.0072 64.405 73.5 66.5755 73.5 69C73.5 71.4245 73.0072 73.595 72.2344 75.1406C71.4466 76.7159 70.4512 77.5 69.5 77.5C68.5488 77.5 67.5534 76.7159 66.7656 75.1406C65.9928 73.595 65.5 71.4245 65.5 69C65.5 66.5755 65.9928 64.405 66.7656 62.8594C67.5534 61.2841 68.5488 60.5 69.5 60.5Z"
-            fill="#304125"
-            stroke="#304125"
-          />
-          <ellipse cx="81.5" cy="86.5" rx="3.5" ry="2.5" fill="#304125" />
-          <path
-            d="M51 56C51 56 57.4703 74.684 53.9525 79.8506C52.0012 82.7165 49.9988 82.7165 48.0475 79.8506C44.5297 74.684 51 56 51 56Z"
-            fill="white"
-          />
-        </svg>
-        <p className="text">{content}</p>
-            
+// 칭찬 횟수에 따른 stamp 이미지 매핑 (1~3개: stamp1~3, 4개 완성)
+const stampImages = {
+  0: null,
+  1: Stamp1,
+  2: Stamp2,
+  3: Stamp3,
+};
+
+// 칭찬 횟수에 따라 적절한 stamp 이미지 반환
+function getStampImage(cloverCount) {
+  // 4개마다 완성되므로 나머지로 현재 진행 상태 계산
+  const currentProgress = cloverCount % 4;
+  return stampImages[currentProgress];
+}
+
+// 가장 최근 메시지 가져오기
+function getLatestMessage(clovers) {
+  if (!clovers || clovers.length === 0) return null;
+  // created_at이 없으면 마지막 항목 반환
+  if (clovers[0]?.created_at) {
+    const sorted = [...clovers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sorted[0]?.message || null;
+  }
+  // created_at이 없으면 마지막 항목의 메시지 반환
+  return clovers[clovers.length - 1]?.message || null;
+}
+
+export default function Before({ onGroupData }) {
+  const [groups, setGroups] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchGroups() {
+      const userId = getStoredUserId();
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      // 1. 유저가 가입한 그룹 목록 가져오기
+      const { data: memberData, error: memberError } = await supabase
+        .from("group_members")
+        .select("group_id, groups(id, group_name)")
+        .eq("user_id", userId);
+
+      if (memberError) {
+        console.error("그룹 조회 실패:", memberError);
+        setLoading(false);
+        return;
+      }
+
+      // 2. 클로버(칭찬) 데이터 가져오기
+      const cloverData = await getCloverBook(userId);
+
+      // 3. 그룹 목록과 클로버 데이터 병합
+      const groupList = memberData
+        .filter((item) => item.groups)
+        .map((item) => {
+          const groupId = item.groups.id;
+          // 해당 그룹의 클로버 데이터 찾기
+          const cloverInfo = cloverData.find((c) => c.groupId === groupId);
+
+          return {
+            id: groupId,
+            name: item.groups.group_name,
+            totalCount: cloverInfo?.totalCount || 0,
+            completedClovers: cloverInfo?.completedClovers || 0,
+            clovers: cloverInfo?.clovers || [],
+            stampImage: getStampImage(cloverInfo?.totalCount || 0),
+            latestMessage: getLatestMessage(cloverInfo?.clovers),
+          };
+        });
+
+      setGroups(groupList);
+      setLoading(false);
+    }
+
+    fetchGroups();
+  }, []);
+
+  // 현재 그룹 정보를 부모에게 전달
+  useEffect(() => {
+    if (groups.length > 0 && onGroupData) {
+      onGroupData(groups[currentIndex]);
+    }
+  }, [currentIndex, groups, onGroupData]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? groups.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === groups.length - 1 ? 0 : prev + 1));
+  };
+
+  // 클로버 박스 클릭 시 LookBook으로 이동
+  const goToLookBook = () => {
+    if (groups.length > 0) {
+      const currentGroup = groups[currentIndex];
+      navigate("/look-book", {
+        state: { groupId: currentGroup.id, groupName: currentGroup.name },
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div css={mobileWrapper}>
+        <div css={headerArea}></div>
+        <div css={centerArea}>
+          <p>로딩 중...</p>
         </div>
       </div>
-    </>
+    );
+  }
+
+  // 가입된 그룹이 없을 때
+  if (groups.length === 0) {
+    return (
+      <div css={mobileWrapper}>
+        <div css={headerArea}></div>
+        <div css={centerArea}>
+          <div css={box}>
+            <img src={clover_img} alt="clover" css={image} />
+            <p css={text}>아직 참여한 그룹이 없어요!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 가입된 그룹이 있을 때
+  const currentGroup = groups[currentIndex];
+  const hasClover = currentGroup.totalCount > 0;
+
+  return (
+    <div css={mobileWrapper}>
+      <div css={headerArea}></div>
+      <div css={centerArea}>
+        <div css={contentWrapper}>
+          {/* 왼쪽 화살표 */}
+          {groups.length > 1 && (
+            <img src={LeftBtn} alt="이전" css={arrowBtn} onClick={handlePrev} />
+          )}
+
+          <div css={boxWithTitle}>
+            <p css={groupTitle}>{currentGroup.name}</p>
+            <div css={box} onClick={goToLookBook}>
+              {hasClover && currentGroup.stampImage ? (
+                <>
+                  <img src={currentGroup.stampImage} alt="stamp" css={stampImage} />
+                  {currentGroup.completedClovers > 0 && (
+                    <p css={completedText}>완성 클로버: {currentGroup.completedClovers}개</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <img src={clover_img} alt="clover" css={image} />
+                  <p css={text}>아직 칭찬을 안 받았어요</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 오른쪽 화살표 */}
+          {groups.length > 1 && (
+            <img src={RightBtn} alt="다음" css={arrowBtn} onClick={handleNext} />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
+
+const mobileWrapper = css`
+  width: 100vw;
+  max-width: 402px;
+  margin: 0 auto;
+  background-color: #fff;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+`;
+
+/* 상단 아이콘 영역 높이를 조절하고 싶으면 여기를 조절 */
+const headerArea = css`
+  height: 80px;
+  flex-shrink: 0;
+`;
+
+/* 실제로 가운데 정렬을 맡는 영역 */
+const centerArea = css`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const box = css`
+  width: 274px;
+  height: 289px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px 0 rgba(0, 0, 0, 0.3);
+  }
+`;
+
+const image = css`
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  margin-bottom: 16px;
+`;
+
+const stampImage = css`
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+`;
+
+const text = css`
+  font-size: 14px;
+  color: #444;
+  text-align: center;
+`;
+
+const completedText = css`
+  font-size: 12px;
+  color: #78a366;
+  margin-top: 8px;
+  font-weight: 600;
+`;
+
+const contentWrapper = css`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const boxWithTitle = css`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const groupTitle = css`
+  font-size: 18px;
+  font-weight: 700;
+  color: #304125;
+  margin-bottom: 16px;
+  text-align: center;
+`;
+
+const arrowBtn = css`
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+`;

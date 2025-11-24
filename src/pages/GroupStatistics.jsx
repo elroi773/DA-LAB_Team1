@@ -87,19 +87,18 @@ export default function GroupStatistics() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (!location.state) {
-    navigate("/giver-main");
-    return null;
-  }
-
-  const { groupId, groupName } = location.state;
-
+  // 모든 useState를 최상단에 선언
   const [rankings, setRankings] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 멤버/랭킹 로드 함수 (refresh에도 사용)
+  // location.state에서 groupId, groupName 추출 (없으면 null)
+  const groupId = location.state?.groupId ?? null;
+  const groupName = location.state?.groupName ?? null;
+
+  // 멤버/랭킹 로드 함수 (refresh에도 사용)
   const loadMembers = async () => {
+    if (!groupId) return;
     setLoading(true);
     try {
       const rankingData = await getGroupRankings(groupId);
@@ -116,12 +115,24 @@ export default function GroupStatistics() {
     }
   };
 
+  // state가 없으면 리다이렉트
   useEffect(() => {
-    console.log("🔥 groupId 전달됨:", groupId);
-    loadMembers();
+    if (!location.state) {
+      navigate("/giver-main");
+    }
+  }, [location.state, navigate]);
+
+  useEffect(() => {
+    if (groupId) {
+      console.log("🔥 groupId 전달됨:", groupId);
+      loadMembers();
+    }
   }, [groupId]);
 
   const podium = rankings.slice(0, 3);
+
+  // groupId가 없으면 리다이렉트 중이므로 null 반환
+  if (!groupId) return null;
 
   return (
     <div css={wrapper}>

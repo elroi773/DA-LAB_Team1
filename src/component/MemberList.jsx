@@ -97,14 +97,15 @@ export default function MemberList({
   };
 
   /* ───────────────── 칭찬 처리 ───────────────── */
-  const handleGiveClover = async (count, message) => {
-    const res = await giveClover(groupId, userId, count, message);
+  const handleGiveClover = async (message) => {
+    // Give_Clover_Popup에서 message만 전달됨, count는 기본값 1
+    const res = await giveClover(groupId, userId, 1, message);
     if (res.success) {
       alert("칭찬이 전송되었습니다!");
       setShowGivePopup(false);
       onRefresh();
     } else {
-      alert("칭찬 실패!");
+      alert("칭찬 실패: " + res.message);
     }
   };
 
