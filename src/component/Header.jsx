@@ -53,7 +53,8 @@ export default function Header() {
     if (result.success) {
       alert(`"${result.group.group_name}" 그룹에 가입되었습니다!`);
       closeModal();
-      window.location.reload(); // 그룹 목록 새로고침
+      navigate("/main", { replace: true });
+      //404 방지
     } else {
       setError(result.error || "가입에 실패했습니다");
     }
