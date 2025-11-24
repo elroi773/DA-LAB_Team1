@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import Clover from "../assets/clover_icon_list.png";
 import { Delete_Popup } from "./Delete_Popup";
+import { deleteSpace } from "../api/space";
 
 const itemWrapper = css`
   width: 354px;
@@ -67,7 +68,7 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function GroupList({ groupId, groupName }) {
+export default function GroupList({ groupId, groupName, onDelete }) {
   const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -79,10 +80,17 @@ export default function GroupList({ groupId, groupName }) {
     setShowDeletePopup(true);
   };
 
-  const handleConfirmDelete = () => {
-    // todo: 실제 삭제 로직 (API 호출, 상태 업데이트 등)
-    console.log(`${groupName} 삭제 실행`);
-    setShowDeletePopup(false);
+  const handleConfirmDelete = async () => {
+    const result = await deleteSpace(groupId);
+    if (result.success) {
+      setShowDeletePopup(false);
+      if (onDelete) {
+        onDelete(groupId);
+      }
+    } else {
+      console.error("그룹 삭제 실패:", result.error);
+      alert("그룹 삭제에 실패했습니다.");
+    }
   };
 
   const handleCancelDelete = () => {
@@ -112,6 +120,7 @@ export default function GroupList({ groupId, groupName }) {
           name={groupName}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
+          type="group"
         />
       )}
     </>

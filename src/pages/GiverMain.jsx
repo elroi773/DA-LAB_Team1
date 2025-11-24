@@ -99,6 +99,10 @@ export default function GiverMain() {
 
   const hasGroup = groups.length > 0;
 
+  const handleDeleteGroup = (groupId) => {
+    setGroups(groups.filter((g) => g.id !== groupId));
+  };
+
   return (
     <div css={mobileWrapper}>
       <Header />
@@ -115,7 +119,12 @@ export default function GiverMain() {
 
             <div css={groupListWrapper}>
               {groups.map((g) => (
-                <GroupList key={g.id} groupId={g.id} groupName={g.group_name} />
+                <GroupList
+                  key={g.id}
+                  groupId={g.id}
+                  groupName={g.group_name}
+                  onDelete={handleDeleteGroup}
+                />
               ))}
             </div>
           </div>

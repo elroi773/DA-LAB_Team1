@@ -133,6 +133,7 @@ export default function MemberList({
           name={name}
           onConfirm={handleDelete}
           onCancel={() => setShowDeletePopup(false)}
+          type="member"
         />
       )}
 
