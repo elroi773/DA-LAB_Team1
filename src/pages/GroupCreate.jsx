@@ -179,7 +179,7 @@ export default function GroupCreate() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    // ✅ 로그인 세션 없으면 생성 불가
+    // 로그인 세션 없으면 생성 불가
     if (!user) {
       setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
       return;
@@ -193,7 +193,7 @@ export default function GroupCreate() {
     try {
       setLoading(true);
 
-      // ✅ previewCode도 함께 전달 (없으면 Space에서 자동 생성)
+      // previewCode도 함께 전달 (없으면 Space에서 자동 생성)
       const res = await Space(groupName.trim(), previewCode || null);
 
       if (!res.success) {
@@ -206,7 +206,7 @@ export default function GroupCreate() {
       setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
       setTimeout(() => {
-        navigate("/");
+        navigate("/giver-main");
       }, 600);
     } catch (err) {
       console.error(err);
