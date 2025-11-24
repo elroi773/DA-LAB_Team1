@@ -84,21 +84,30 @@ margin-top: 25px;
   border: none;
   outline: none;
 }
+
 .header-grid {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 30px;
   width: 100%;
+  max-width: 402px;       
+  padding: 30px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;  
+  align-items: center;
+  box-sizing: border-box;
 }
 
-.error-msg {
-  color: #e74c3c;
-  font-size: 12px;
-  margin: 5px 0 0 24px;
+.exit,
+.cloverbtn {
+  width: 28px;      
+  height: 28px;
+  cursor: pointer;
 }
 
-.closemodal:disabled {
-  background: #c4c4c4;
-  cursor: not-allowed;
+
+.exit {
+  float: none;
+}
+
+.cloverbtn {
+  float: none;
 }
