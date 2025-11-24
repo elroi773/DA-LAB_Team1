@@ -66,16 +66,20 @@ const cancelBtn = css`
   cursor: pointer;
 `;
 
-export const Delete_Popup = ({ name, onConfirm, onCancel }) => {
+export const Delete_Popup = ({ name, onConfirm, onCancel, type }) => {
   const location = useLocation();
 
-  // 현재 경로가 "/"인지 확인
-  const isMainPage = location.pathname === "/";
-
   // 문구 변경
-  const deleteText = isMainPage
-    ? `그룹에서 “${name}”를 삭제하시겠습니까?`
-    : `그룹에서 “${name}”님을 삭제하시겠습니까?`;
+  let deleteText;
+  if (type === "group") {
+    deleteText = `${name} 그룹을 정말 삭제하시겠습니까?`;
+  } else if (type === "member") {
+    deleteText = `리스트에서 "${name}"를 삭제하시겠습니까?`;
+  } else if (location.pathname === "/") {
+    deleteText = `그룹에서 "${name}"를 삭제하시겠습니까?`;
+  } else {
+    deleteText = `그룹에서 "${name}"님을 삭제하시겠습니까?`;
+  }
 
   return (
     <div css={overlay}>
