@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header";
 import GroupCreateLogo from "../assets/group_clover.png";
 
-// ✅ Space API
+// Space API
 import { Space } from "../api/space.jsx";
-// ✅ supabase client (세션 확인용)
+//supabase client (세션 확인용)
 import { supabase } from "../api/supabaseClient.js";
 
 const mobileWrapper = css`
@@ -124,10 +124,10 @@ export default function GroupCreate() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // ✅ 현재 로그인 유저 세션 상태
+  //현재 로그인 유저 세션 상태
   const [user, setUser] = useState(null);
 
-  // ✅ 페이지 들어오면 세션 확인
+  //페이지 들어오면 세션 확인
   useEffect(() => {
     const loadSession = async () => {
       const { data, error } = await supabase.auth.getSession();
@@ -206,7 +206,7 @@ export default function GroupCreate() {
       setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
       setTimeout(() => {
-        navigate("/main");
+        navigate("/");
       }, 600);
     } catch (err) {
       console.error(err);

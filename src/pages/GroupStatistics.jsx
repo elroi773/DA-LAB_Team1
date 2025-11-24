@@ -87,7 +87,7 @@ export default function GroupStatistics() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ 모든 useState를 최상단에 선언
+  // 모든 useState를 최상단에 선언
   const [rankings, setRankings] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +96,7 @@ export default function GroupStatistics() {
   const groupId = location.state?.groupId ?? null;
   const groupName = location.state?.groupName ?? null;
 
-  // ✅ 멤버/랭킹 로드 함수 (refresh에도 사용)
+  // 멤버/랭킹 로드 함수 (refresh에도 사용)
   const loadMembers = async () => {
     if (!groupId) return;
     setLoading(true);
