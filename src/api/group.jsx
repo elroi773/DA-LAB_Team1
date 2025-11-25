@@ -45,6 +45,24 @@ export async function GetGroups(group_id) {
   };
 }
 
+//그룹 코드 불러오는 API 
+
+export async function getGroupDetail(groupId) {
+  const { data, error } = await supabase
+    .from("groups")
+    .select("id, group_name, code")
+    .eq("id", groupId)
+    .single();
+
+  if (error) {
+    console.error("🔥 getGroupDetail error:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+
 //특정 학생이 그룹을 조회한다 내가 들어가있는 곳
 export async function getGroupMembers(groupId) {
     // 1) 그룹 멤버 id 목록
