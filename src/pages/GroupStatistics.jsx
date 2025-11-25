@@ -72,23 +72,28 @@ const countText = css`
 
 const codeSection = css`
   width: 100%;
-  padding: 16px 0 8px;
+  padding-top: 12px;
+  padding-bottom: 6px;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  // margin-top: 4px;
+  margin-top: px;
+  margin-bottom:30px;
 `;
+
 
 const codeLabel = css`
   color: #6b8460;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 `;
 
 const codeValue = css`
-  margin-top: 4px;
-  font-size: 20px;
+  margin-left: 6px;
+  font-size: 16px;
   font-weight: 700;
-  color: #80a867;
+  color: #304125;
 `;
 
 const listSection = css`
@@ -185,13 +190,13 @@ export default function GroupStatistics() {
         </section>
 
         {/* ──  그룹 코드 표시 영역 ── */}
-        <section css={codeSection}>
-          <span css={codeLabel}>그룹방 코드</span>
-          <span css={codeValue}>{groupCode}</span>
-        </section>
 
         {/* ─── 멤버 리스트 ─── */}
         <section css={listSection}>
+          <section css={codeSection}>
+            <span css={codeLabel}>그룹방 코드</span>
+            <span css={codeValue}>{groupCode}</span>
+          </section>
           {loading ? (
             <p>로딩 중...</p>
           ) : members.length === 0 ? (
