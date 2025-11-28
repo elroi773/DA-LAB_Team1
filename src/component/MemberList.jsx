@@ -28,7 +28,7 @@ const leftBox = css`
   gap: 12px;
 
   & img {
-    background: white;
+    background: transparent;
     border-radius: 50%;
     width: 31px;
     height: 32px;
