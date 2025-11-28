@@ -2,6 +2,22 @@ import { supabase } from "./supabaseClient.js";
 
 // 그룹 참여
 export async function JoinGroup(group_id, user_id, role) {
+  // 이미 가입한 상태인지 확인
+  const { data: existing } = await supabase
+    .from("group_members")
+    .select("*")
+    .eq("group_id", group_id)
+    .eq("user_id", user_id)
+    .maybeSingle();
+
+  if (existing) {
+    return {
+      success: false,
+      message: "이미 참여한 그룹입니다.",
+      error: { code: "ALREADY_MEMBER" },
+    };
+  }
+
   const { data, error } = await supabase
     .from("group_members")
     .insert([{ group_id, user_id, role }])
@@ -9,6 +25,14 @@ export async function JoinGroup(group_id, user_id, role) {
     .single();
 
   if (error) {
+    // 409 Conflict 에러 처리 (중복 삽입 시도)
+    if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
+      return {
+        success: false,
+        message: "이미 참여한 그룹입니다.",
+        error,
+      };
+    }
     return {
       success: false,
       message: `Group 생성 실패: ${error.message}`,
