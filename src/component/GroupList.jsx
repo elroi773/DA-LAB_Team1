@@ -8,7 +8,7 @@ import { Delete_Popup } from "./Delete_Popup";
 import { deleteSpace } from "../api/space";
 
 const itemWrapper = css`
-  width: 354px;
+  width: 320px;
   height: 89px;
   flex-shrink: 0;
   background: #f0f0f0;
