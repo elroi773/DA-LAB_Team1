@@ -55,7 +55,7 @@ export async function getSpaceCode(code) {
 export async function JoinSpace(userId, code) {
     console.log('JoinSpace 호출:', { userId, code: code.toUpperCase() });
 
-    // 1. 프로필 확인 및 생성
+    // 1. 프로필 존재 여부 확인
     const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -63,24 +63,17 @@ export async function JoinSpace(userId, code) {
         .maybeSingle();
 
     if (!profile) {
-        console.log('프로필이 없습니다. 기본 프로필을 생성합니다.');
-        // 프로필이 없으면 기본 닉네임으로 생성
+        console.log('프로필 없음 → 자동 생성');
         const { data: userData } = await supabase.auth.getUser();
         const defaultNickname = userData?.user?.email?.split('@')[0] || '사용자';
 
         const { error: profileError } = await supabase
             .from('profiles')
-            .upsert(
-                {
-                    id: userId,
-                    nickname: defaultNickname,
-                },
-                { onConflict: 'id' }
-            );
+            .upsert({ id: userId, nickname: defaultNickname }, { onConflict: 'id' });
 
         if (profileError) {
             console.error('프로필 생성 실패:', profileError);
-            return {success: false, error: "프로필 생성에 실패했습니다. 다시 로그인해주세요."};
+            return { success: false, error: "프로필 생성에 실패했습니다. 다시 로그인해주세요." };
         }
     }
 
@@ -93,42 +86,61 @@ export async function JoinSpace(userId, code) {
 
     console.log('그룹 조회 결과:', { group, groupError });
 
-    if (groupError) {
-        console.error('그룹 조회 에러:', groupError);
-        return {success: false, error: "그룹 조회 중 오류가 발생했습니다"};
+    if (groupError)
+        return { success: false, error: "그룹 조회 중 오류가 발생했습니다." };
+
+    if (!group)
+        return { success: false, error: "유효하지 않은 코드입니다." };
+
+   
+    console.log("🔍 group.creatorId =", group.creatorId, " / userId =", userId);
+
+    if (group.creatorId === userId) {
+        console.log(" 그룹 생성자는 자기 그룹에 참여 불가");
+        return {
+            success: false,
+            error: "자신이 만든 그룹에는 참여할 수 없습니다."
+        };
     }
-    if (!group){
-        return {success: false, error: "유효하지 않은 코드입니다"};
+
+    // 4. 이미 멤버인지 확인
+    const { data: ingroup } = await supabase
+        .from('group_members')
+        .select('*')
+        .eq('group_id', group.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    console.log('중복 체크 결과:', { ingroup });
+
+    if (ingroup) {
+        return { success: false, error: "이미 참여한 그룹입니다." };
     }
 
-    // 3. 이미 가입한 상태인지 확인
-    const {data: ingroup} = await supabase.from('group_members').select(`*`).eq('group_id',group.id).eq('user_id',userId).maybeSingle();
-
-    console.log('중복 체크 결과:', { ingroup, groupId: group.id, userId });
-
-    if(ingroup){
-        console.log('이미 가입된 그룹입니다');
-        return {success: false, error: "이미 참여한 그룹입니다."};
-    }
-
-    // 4. 멤버 추가
+    // 5. 멤버 추가
     console.log('멤버 추가 시도:', { group_id: group.id, user_id: userId });
-    const {error: insertError} = await supabase.from('group_members').insert([{group_id: group.id, user_id: userId}]);
-    if(insertError){
-        console.error('멤버 추가 에러:', insertError);
-        // 409 Conflict 에러 처리 (중복 삽입 시도)
-        if (insertError.code === '23505' || insertError.message.includes('duplicate') || insertError.message.includes('unique')) {
-            return {success: false, error: "이미 참여한 그룹입니다."};
-        }
-        // Foreign key 에러 처리
-        if (insertError.code === '23503') {
-            return {success: false, error: "프로필 오류가 발생했습니다. 로그아웃 후 다시 로그인해주세요."};
-        }
-        return {success: false, error: "그룹 가입 중 오류가 발생했습니다: " + insertError.message};
+
+    const { error: insertError } = await supabase
+        .from('group_members')
+        .insert([{ group_id: group.id, user_id: userId }]);
+
+    if (insertError) {
+        console.error('멤버 추가 실패:', insertError);
+
+        if (insertError.code === '23505')
+            return { success: false, error: "이미 참여한 그룹입니다." };
+
+        if (insertError.code === '23503')
+            return { success: false, error: "프로필 오류가 발생했습니다. 로그아웃 후 다시 로그인해주세요." };
+
+        return { success: false, error: "그룹 가입 오류: " + insertError.message };
     }
+
     console.log('멤버 추가 성공');
-    return {success: true, group};
+
+    return { success: true, group };
 }
+
 //그룹 관리
 export async function mySpace(creatorId) {
     const { data,error} = await supabase.from('groups').select('*').eq('creatorId',creatorId)
