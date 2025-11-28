@@ -123,6 +123,28 @@ export async function loginUser(email, password) {
     return { success: false, message: '로그인에 실패했습니다.' }
   }
 
+  // 프로필이 없으면 생성
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    console.log('프로필이 없습니다. 기본 프로필을 생성합니다.');
+    const defaultNickname = email.split('@')[0] || '사용자';
+
+    await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: data.user.id,
+          nickname: defaultNickname,
+        },
+        { onConflict: 'id' }
+      );
+  }
+
   saveSessionToStorage(data.session);
   saveUserIdToStorage(data.user.id);
 

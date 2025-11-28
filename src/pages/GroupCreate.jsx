@@ -206,7 +206,7 @@ export default function GroupCreate() {
       setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
       setTimeout(() => {
-        navigate("/main");
+        navigate("/giver-main");
       }, 600);
     } catch (err) {
       console.error(err);

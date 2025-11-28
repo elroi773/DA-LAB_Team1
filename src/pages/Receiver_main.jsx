@@ -19,6 +19,7 @@ const mobileWrapper = css`
 /* 하단 고정 영역 */
 const bottomWrapper = css`
   padding: 20px 20px 40px;
+  margin-top: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
