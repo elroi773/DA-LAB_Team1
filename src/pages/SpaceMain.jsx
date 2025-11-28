@@ -106,7 +106,7 @@ export default function SpaceMain() {
 
         <div css={group2}>
           <button css={groupBtn} onClick={goToGiverMain}>
-            그룹 생성하기
+            관리중인 그룹 보기
           </button>
           <button onClick={goToReceiverMain} css={groupBtn}>
             그룹 입장하기

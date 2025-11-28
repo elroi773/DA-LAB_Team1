@@ -1,12 +1,22 @@
-.exit {
-  float: left;
-  padding-left: 30px;
-  padding-top: 30px;
+.header-grid1 {
+  width: 100%;
+  max-width: 402px;
+  margin: 0 auto;
+  margin-top: 30px;
+  padding: 30px 30px 0 30px; /* 상단 padding 유지 */
+  display: flex;
+  justify-content: space-between; /* 왼쪽 — 오른쪽 아이콘 배치 */
+  align-items: center;            /* ⬅⬅⬅ 수직 중앙 정렬 */
+  box-sizing: border-box;
 }
+
+/* float 제거! */
+.exit,
 .create {
-  float: right;
-  padding-right: 30px;
-  padding-top: 30px;
+  width: 27px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0; /* 여백 제거 후 부모 flex가 정렬하도록 */
 }
 
 body.active-modal {
@@ -84,21 +94,30 @@ margin-top: 25px;
   border: none;
   outline: none;
 }
+
 .header-grid {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 30px;
   width: 100%;
+  max-width: 402px;       
+  padding: 30px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;  
+  align-items: center;
+  box-sizing: border-box;
 }
 
-.error-msg {
-  color: #e74c3c;
-  font-size: 12px;
-  margin: 5px 0 0 24px;
+.exit,
+.cloverbtn {
+  width: 28px;      
+  height: 28px;
+  cursor: pointer;
 }
 
-.closemodal:disabled {
-  background: #c4c4c4;
-  cursor: not-allowed;
+
+.exit {
+  float: none;
+}
+
+.cloverbtn {
+  float: none;
 }

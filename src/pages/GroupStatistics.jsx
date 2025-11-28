@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Header from "../component/Giver_Header";
 import MemberList from "../component/MemberList";
 import { getGroupRankings } from "../api/Rank";
-import { getGroupMembers } from "../api/group";
+import { getGroupMembers, getGroupDetail } from "../api/group";
 
 // ───────────────── CSS ───────────────────
 const wrapper = css`
@@ -71,6 +71,32 @@ const countText = css`
   color: white;
 `;
 
+const codeSection = css`
+  width: 100%;
+  padding-top: 12px;
+  padding-bottom: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // margin-top: 4px;
+  margin-top: px;
+  margin-bottom:30px;
+`;
+
+
+const codeLabel = css`
+  color: #6b8460;
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+const codeValue = css`
+  margin-left: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #304125;
+`;
+
 const listSection = css`
   width: 100%;
   padding: 26px 0 40px;
@@ -88,39 +114,44 @@ export default function GroupStatistics() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ 모든 useState를 최상단에 선언
+  const [groupCode, setGroupCode] = useState("");
   const [rankings, setRankings] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // location.state에서 groupId, groupName 추출 (없으면 null)
   const groupId = location.state?.groupId ?? null;
   const groupName = location.state?.groupName ?? null;
 
-  // ✅ 멤버/랭킹 로드 함수 (refresh에도 사용)
+  // 그룹 코드 → 랭킹 → 멤버 순서로 정확히 로드
   const loadMembers = async () => {
     if (!groupId) return;
     setLoading(true);
+
     try {
+      // 1) 그룹 코드 (가장 먼저)
+      const groupInfo = await getGroupDetail(groupId);
+      console.log("🔥 groupInfo:", groupInfo);
+      setGroupCode(groupInfo?.code ?? "");
+
+      // 2) 랭킹
       const rankingData = await getGroupRankings(groupId);
       setRankings(rankingData);
 
+      // 3) 멤버 목록
       const memberData = await getGroupMembers(groupId);
       setMembers(memberData);
 
       console.log("🔥 불러온 그룹 멤버:", memberData);
+
     } catch (err) {
-      console.error("데이터 불러오기 실패:", err);
+      console.error("🔥 loadMembers 전체 에러:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // state가 없으면 리다이렉트
   useEffect(() => {
-    if (!location.state) {
-      navigate("/giver-main");
-    }
+    if (!location.state) navigate("/giver-main");
   }, [location.state, navigate]);
 
   useEffect(() => {
@@ -132,13 +163,14 @@ export default function GroupStatistics() {
 
   const podium = rankings.slice(0, 3);
 
-  // groupId가 없으면 리다이렉트 중이므로 null 반환
   if (!groupId) return null;
 
   return (
     <div css={wrapper}>
       <div css={mobileScreen}>
         <Header />
+
+        {/* ─── 포디움 영역 ─── */}
         <section css={graphSection}>
           {loading ? (
             <div>불러오는 중...</div>
@@ -164,7 +196,14 @@ export default function GroupStatistics() {
           )}
         </section>
 
+        {/* ──  그룹 코드 표시 영역 ── */}
+
+        {/* ─── 멤버 리스트 ─── */}
         <section css={listSection}>
+          <section css={codeSection}>
+            <span css={codeLabel}>그룹방 코드</span>
+            <span css={codeValue}>{groupCode}</span>
+          </section>
           {loading ? (
             <p>로딩 중...</p>
           ) : members.length === 0 ? (
@@ -174,12 +213,12 @@ export default function GroupStatistics() {
               <MemberList
                 key={m.user_id}
                 groupId={groupId}
-                groupName={groupName} 
+                groupName={groupName}
                 userId={m.user_id}
                 name={m.nickname}
                 clovers={
-                  rankings.find((r) => r.user_id === m.user_id)
-                    ?.total_clovers || 0
+                  rankings.find((r) => r.user_id === m.user_id)?.total_clovers ||
+                  0
                 }
                 onRefresh={loadMembers}
               />

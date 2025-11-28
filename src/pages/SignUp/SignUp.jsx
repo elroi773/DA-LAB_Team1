@@ -6,6 +6,10 @@ import { useState } from "react";
 
 import { checkNickname, signUpUser } from "../../api/Users";
 
+// ─────────────────────────────────────────────────────────
+// 전체 스타일
+// ─────────────────────────────────────────────────────────
+
 const mobileWrapper = css`
   width: 100vw;
   height: 100vh;
@@ -81,10 +85,8 @@ const eText2 = css`
 
 const sgupBtn = css`
   width: 100%;
-  height: 40px;
-  background-color: #80a867;
-  width: 354px;
   height: 60px;
+  background-color: #80a867;
   font-size: 15px;
   color: #ffffff;
   border: none;
@@ -96,15 +98,12 @@ const sgupBtn = css`
   }
 `;
 
+// ─────────────────────────────────────────────────────────
+// 닉네임 영역 (반응형 완전 고침)
+// ─────────────────────────────────────────────────────────
+
 const nickName = css`
   padding: 20px;
-`;
-
-const input_nick = css`
-  width: 197px;
-  height: 50px;
-  border: 1px solid #c4c4c4;
-  border-radius: 5px;
 `;
 
 const nick = css`
@@ -113,12 +112,32 @@ const nick = css`
   margin-bottom: 8px;
 `;
 
+// 👉 flex 기반 반응형 row
+const nickRow = css`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+`;
+
+// 입력창은 flex=1 로 가변
+const input_nick = css`
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  border: 1px solid #c4c4c4;
+  border-radius: 5px;
+  padding: 0 12px;
+  font-size: 15px;
+`;
+
+// 버튼은 shrink 금지
 const duplicate_checkBtn = css`
-  width: 125px;
+  flex-shrink: 0;
+  width: 110px;
   height: 50px;
   border-radius: 5px;
   background: #d7d7d7;
-  margin-left: 30px;
   border: none;
   cursor: pointer;
   font-size: 15px;
@@ -130,10 +149,7 @@ const duplicate_checkBtn = css`
   }
 `;
 
-const box1 = css`
-  display: flex;
-`;
-
+// 메시지 공용 스타일
 const msg = (color) => css`
   font-size: 12px;
   margin-top: 6px;
@@ -146,13 +162,13 @@ export default function SignUp() {
 
   const goToLogin = () => navigate("/login");
 
-  // 입력 state
+  // 입력값 state
   const [nickname, setNickname] = useState("");
   const [emailValue, setEmailValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
   const [rePasswordValue, setRePasswordValue] = useState("");
 
-  // 닉네임 중복확인 상태
+  // 닉네임 중복확인
   const [nicknameChecked, setNicknameChecked] = useState(false);
   const [nicknameMsg, setNicknameMsg] = useState("");
 
@@ -162,14 +178,12 @@ export default function SignUp() {
 
   const isNickButtonDisabled = nickname.trim() === "";
 
-  // 닉네임 변경 시 중복확인 다시 풀기
   const handleNicknameChange = (e) => {
     setNickname(e.target.value);
     setNicknameChecked(false);
     setNicknameMsg("");
   };
 
-  // 닉네임 중복 확인 API 호출
   const handleCheckNickname = async () => {
     setNicknameMsg("");
     setSignUpMsg("");
@@ -185,7 +199,7 @@ export default function SignUp() {
     }
   };
 
-  // 회원가입 API 호출
+  // 회원가입 요청
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSignUpMsg("");
@@ -206,11 +220,10 @@ export default function SignUp() {
       setSignUpMsg("비밀번호를 입력해주세요.");
       return;
     }
-
     if (passwordValue.length < 6) {
-        setSignUpMsg("비밀번호는 6자 이상이어야 합니다.");
-        return;
-      }
+      setSignUpMsg("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -239,32 +252,33 @@ export default function SignUp() {
 
   return (
     <div css={mobileWrapper}>
-      <div css={box1}>
-        <p css={title}>회원가입</p>
-      </div>
+      <p css={title}>회원가입</p>
 
-      {/* form submit으로 통일 */}
       <form onSubmit={handleSubmit}>
+        {/* 닉네임 */}
         <div css={nickName}>
           <label css={nick}>닉네임</label>
-          <input
-            type="text"
-            name="nickName"
-            className="input_nick"
-            css={input_nick}
-            placeholder="닉네임 입력"
-            value={nickname}
-            onChange={handleNicknameChange}
-          />
-          <button
-            type="button"
-            disabled={isNickButtonDisabled}
-            onClick={handleCheckNickname}
-            css={duplicate_checkBtn}
-            style={{ color: nickname ? "#000000ff" : "#868686" }}
-          >
-            중복확인
-          </button>
+
+          <div css={nickRow}>
+            <input
+              type="text"
+              name="nickName"
+              css={input_nick}
+              placeholder="닉네임 입력"
+              value={nickname}
+              onChange={handleNicknameChange}
+            />
+
+            <button
+              type="button"
+              disabled={isNickButtonDisabled}
+              onClick={handleCheckNickname}
+              css={duplicate_checkBtn}
+              style={{ color: nickname ? "#000000ff" : "#868686" }}
+            >
+              중복확인
+            </button>
+          </div>
 
           {nicknameMsg && (
             <p css={msg(nicknameChecked ? "#2ecc71" : "#e74c3c")}>
@@ -273,12 +287,12 @@ export default function SignUp() {
           )}
         </div>
 
+        {/* 이메일 */}
         <div css={email}>
           <label css={email2}>이메일</label>
           <input
             type="email"
             name="email"
-            className="input_email"
             css={input_email}
             placeholder="이메일 입력"
             value={emailValue}
@@ -286,12 +300,12 @@ export default function SignUp() {
           />
         </div>
 
+        {/* 비밀번호 */}
         <div css={password}>
           <label css={password2}>비밀번호</label>
           <input
             type="password"
             name="password"
-            className="input_password"
             css={input_password}
             placeholder="비밀번호 입력"
             value={passwordValue}
@@ -299,12 +313,12 @@ export default function SignUp() {
           />
         </div>
 
+        {/* 비밀번호 확인 */}
         <div css={password_check}>
           <label css={password2}>비밀번호 재확인</label>
           <input
             type="password"
             name="repassword"
-            className="input_password"
             css={input_password}
             placeholder="비밀번호 재입력"
             value={rePasswordValue}
