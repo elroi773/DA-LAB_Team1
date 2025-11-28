@@ -33,13 +33,14 @@ const graphSection = css`
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: 60px;
+  padding-bottom: 0px;
 `;
 
 const podiumWrapper = css`
   display: flex;
   gap: 18px;
   align-items: flex-end;
+  padding-bottom: 20px;
 `;
 
 const podiumItem = css`
@@ -74,7 +75,7 @@ const listSection = css`
   width: 100%;
   padding: 26px 0 40px;
   background: #ffffff;
-  margin-top: -40px;
+  margin-top: -20px;
   border-radius: 32px 32px 0 0;
   display: flex;
   flex-direction: column;
@@ -145,14 +146,20 @@ export default function GroupStatistics() {
             <h2>아직 클로버가 없어요 😢</h2>
           ) : (
             <div css={podiumWrapper}>
-              {podium.map((p) => (
-                <div key={p.user_id} css={podiumItem}>
-                  <span css={nameStyle}>{p.user_name}</span>
-                  <div css={bar} style={{ height: 80 + p.total_clovers * 15 }}>
-                    <span css={countText}>{p.total_clovers}</span>
+              {podium.map((p) => {
+                // 막대 높이 계산: 최소 80px, 최대 200px
+                const calculatedHeight = 80 + p.total_clovers * 15;
+                const barHeight = Math.min(calculatedHeight, 200);
+
+                return (
+                  <div key={p.user_id} css={podiumItem}>
+                    <span css={nameStyle}>{p.user_name}</span>
+                    <div css={bar} style={{ height: barHeight }}>
+                      <span css={countText}>{p.total_clovers}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
