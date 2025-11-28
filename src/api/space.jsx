@@ -101,6 +101,12 @@ export async function JoinSpace(userId, code) {
         return {success: false, error: "유효하지 않은 코드입니다"};
     }
 
+    // 2-1. 그룹 생성자인지 확인
+    if (group.created_by === userId || group.creatorId === userId || group.creator_id === userId) {
+        console.log('그룹 생성자는 참여할 수 없습니다');
+        return {success: false, error: "그룹을 만든 사람은 참여할 수 없습니다."};
+    }
+
     // 3. 이미 가입한 상태인지 확인
     const {data: ingroup} = await supabase.from('group_members').select(`*`).eq('group_id',group.id).eq('user_id',userId).maybeSingle();
 
