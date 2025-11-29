@@ -3,62 +3,60 @@ import Create from "../assets/create.svg";
 import "./Header.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-import { getSpaceCode } from "../api/space"; // 그룹 찾기
-import { JoinGroup } from "../api/group"; // group_members에 추가
-import { supabase } from "../api/supabaseClient"; // 로그인 유저 가져오기
+import { JoinSpace } from "../api/space.jsx";
+import { getStoredUserId } from "../api/Users.jsx";
 
 export default function Header() {
   const navigate = useNavigate();
-  const [modal, setModal] = useState(false);
-  const [code, setCode] = useState("");
+  const [modal, setModal] = useState(false); // 초기값은 안 열려있는거
+  const [code, setCode] = useState(""); // 입력한 코드 저장
+  const [error, setError] = useState(""); // 에러 메시지
+  const [loading, setLoading] = useState(false); // 로딩 상태
 
-  const goToMain = () => navigate("/main");
+  const goToMain = () => {
+    navigate("/main");
+  };
+  const openModal = () => {
+    setModal(true);
+    setCode("");
+    setError("");
+  }; // 모달 open
 
-  const openModal = () => setModal(true);
   const closeModal = () => {
     setModal(false);
     setCode("");
+    setError("");
+  }; // 모달 close
+
+  const handleChange = (event) => {
+    setCode(event.target.value);
+    setError(""); // 입력 시 에러 초기화
   };
 
-  // 그룹 참여 처리
-  const handleJoin = async () => {
+  const handleJoinSpace = async () => {
     if (!code.trim()) {
-      alert("코드를 입력해주세요.");
+      setError("코드를 입력해주세요");
       return;
     }
 
-    // 1) 로그인 유저 가져오기
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      alert("로그인이 필요합니다.");
+    const userId = getStoredUserId();
+    if (!userId) {
+      setError("로그인이 필요합니다");
+      navigate("/login");
       return;
     }
 
-    const userId = user.id;
+    setLoading(true);
+    const result = await JoinSpace(userId, code.trim());
+    setLoading(false);
 
-    // 2) 그룹 코드로 그룹 찾기
-    const res = await getSpaceCode(code);
-
-    if (!res.success) {
-      alert("유효하지 않은 코드입니다.");
-      return;
+    if (result.success) {
+      alert(`"${result.group.group_name}" 그룹에 가입되었습니다!`);
+      closeModal();
+      navigate("/receiver-main"); // 그룹 목록 새로고침
+    } else {
+      setError(result.error || "가입에 실패했습니다");
     }
-
-    const group = res.group;
-
-    // 3) group_members에 조인 처리
-    const join = await JoinGroup(group.id, userId, "member");
-
-    if (!join.success) {
-      alert(join.message);
-      return;
-    }
-
-    closeModal();
-    navigate(`/group/${group.id}`);
   };
 
   return (
@@ -149,20 +147,24 @@ export default function Header() {
           strokeLinecap="round"
         />
       </svg>
-
       {modal && (
         <div className="modal">
-          <div className="overlay"></div>
+          <div className="overlay" onClick={closeModal}></div>
           <div className="modal-content">
             <p>그룹 입장</p>
             <input
               type="text"
-              placeholder="코드입력"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={handleChange}
+              placeholder="코드입력"
             />
-            <button onClick={handleJoin} className="closemodal">
-              확인
+            {error && <p className="error-msg">{error}</p>}
+            <button
+              onClick={handleJoinSpace}
+              className="closemodal"
+              disabled={loading}
+            >
+              {loading ? "가입 중..." : "확인"}
             </button>
           </div>
         </div>

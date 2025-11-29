@@ -5,13 +5,10 @@ import { useNavigate } from "react-router-dom";
 
 import Clover from "../assets/clover_icon_list.png";
 import { Delete_Popup } from "./Delete_Popup";
-
-// API
-import { giveClover } from "../api/Hearts";
-import { DeleteMember } from "../api/group";
+import { deleteSpace } from "../api/space";
 
 const itemWrapper = css`
-  width: 344px;
+  width: 320px;
   height: 89px;
   flex-shrink: 0;
   background: #f0f0f0;
@@ -44,7 +41,7 @@ const leftBox = css`
 const rightBox = css`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px; /* 버튼 사이 간격 */
 `;
 
 const greenbtn = css`
@@ -71,22 +68,33 @@ const redbtn = css`
   cursor: pointer;
 `;
 
-export default function GroupList({
-  groupId,
-  userId,
-  groupName,
-}) {
+export default function GroupList({ groupId, groupName, onDelete }) {
   const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
-  // ⭐ 가장 쉬운 방법: state 로 전달
   const goToGiverStatistics = () => {
-    navigate("/groupstatistics", {
-      state: {
-        groupId,
-        groupName
+    navigate("/groupstatistics", { state: { groupId, groupName } });
+  };
+
+  const openDeletePopup = () => {
+    setShowDeletePopup(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    const result = await deleteSpace(groupId);
+    if (result.success) {
+      setShowDeletePopup(false);
+      if (onDelete) {
+        onDelete(groupId);
       }
-    });
+    } else {
+      console.error("그룹 삭제 실패:", result.error);
+      alert("그룹 삭제에 실패했습니다.");
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeletePopup(false);
   };
 
   return (
@@ -101,8 +109,7 @@ export default function GroupList({
           <button css={greenbtn} onClick={goToGiverStatistics}>
             관리하기
           </button>
-
-          <button css={redbtn} onClick={() => setShowDeletePopup(true)}>
+          <button css={redbtn} onClick={openDeletePopup}>
             삭제
           </button>
         </div>
@@ -111,8 +118,9 @@ export default function GroupList({
       {showDeletePopup && (
         <Delete_Popup
           name={groupName}
-          onConfirm={() => setShowDeletePopup(false)}
-          onCancel={() => setShowDeletePopup(false)}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          type="group"
         />
       )}
     </>

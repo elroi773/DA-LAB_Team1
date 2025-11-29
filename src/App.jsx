@@ -72,6 +72,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Intro />} />
+        <Route path="/*" element={<Intro />} />
         <Route path="/receiver-main" element={<ReceiverMain />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
@@ -81,6 +82,7 @@ function App() {
         <Route path="/giver-main" element={<GiverMain />} />
         <Route path="/groupstatistics" element={<GroupStatistics />} />
         <Route path="/receiver_Group" element={<Receiver_Group />} />
+        <Route path="/*" element={<Intro />} />
       </Routes>
     </>
   );

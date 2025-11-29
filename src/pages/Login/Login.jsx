@@ -94,7 +94,7 @@ const eText1 = css`
 const eText2 = css`
   font-size: 14px;
   color: #989898;
-  margin-left: 145px;
+  margin-left: 180px;
   text-decoration: underline;
   font-style: normal;
   font-weight: 500;

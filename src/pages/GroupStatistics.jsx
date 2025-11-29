@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Header from "../component/Giver_Header";
 import MemberList from "../component/MemberList";
 import { getGroupRankings } from "../api/Rank";
-import { getGroupMembers } from "../api/group";
+import { getGroupMembers, getGroupDetail } from "../api/group";
 
 // ───────────────── CSS ───────────────────
 const wrapper = css`
@@ -33,13 +33,14 @@ const graphSection = css`
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: 60px;
+  padding-bottom: 0px;
 `;
 
 const podiumWrapper = css`
   display: flex;
   gap: 18px;
   align-items: flex-end;
+  padding-bottom: 20px;
 `;
 
 const podiumItem = css`
@@ -70,11 +71,37 @@ const countText = css`
   color: white;
 `;
 
+const codeSection = css`
+  width: 100%;
+  padding-top: 12px;
+  padding-bottom: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // margin-top: 4px;
+  margin-top: px;
+  margin-bottom:30px;
+`;
+
+
+const codeLabel = css`
+  color: #6b8460;
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+const codeValue = css`
+  margin-left: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #304125;
+`;
+
 const listSection = css`
   width: 100%;
   padding: 26px 0 40px;
   background: #ffffff;
-  margin-top: -40px;
+  margin-top: -20px;
   border-radius: 32px 32px 0 0;
   display: flex;
   flex-direction: column;
@@ -87,46 +114,63 @@ export default function GroupStatistics() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (!location.state) {
-    navigate("/giver-main");
-    return null;
-  }
-
-  const { groupId, groupName } = location.state;
-
+  const [groupCode, setGroupCode] = useState("");
   const [rankings, setRankings] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 멤버/랭킹 로드 함수 (refresh에도 사용)
+  const groupId = location.state?.groupId ?? null;
+  const groupName = location.state?.groupName ?? null;
+
+  // 그룹 코드 → 랭킹 → 멤버 순서로 정확히 로드
   const loadMembers = async () => {
+    if (!groupId) return;
     setLoading(true);
+
     try {
+      // 1) 그룹 코드 (가장 먼저)
+      const groupInfo = await getGroupDetail(groupId);
+      console.log("🔥 groupInfo:", groupInfo);
+      setGroupCode(groupInfo?.code ?? "");
+
+      // 2) 랭킹
       const rankingData = await getGroupRankings(groupId);
       setRankings(rankingData);
 
+      // 3) 멤버 목록
       const memberData = await getGroupMembers(groupId);
       setMembers(memberData);
 
       console.log("🔥 불러온 그룹 멤버:", memberData);
+
     } catch (err) {
-      console.error("데이터 불러오기 실패:", err);
+      console.error("🔥 loadMembers 전체 에러:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("🔥 groupId 전달됨:", groupId);
-    loadMembers();
+    if (!location.state) navigate("/giver-main");
+  }, [location.state, navigate]);
+
+  useEffect(() => {
+    if (groupId) {
+      console.log("🔥 groupId 전달됨:", groupId);
+      loadMembers();
+    }
   }, [groupId]);
 
   const podium = rankings.slice(0, 3);
+
+  if (!groupId) return null;
 
   return (
     <div css={wrapper}>
       <div css={mobileScreen}>
         <Header />
+
+        {/* ─── 포디움 영역 ─── */}
         <section css={graphSection}>
           {loading ? (
             <div>불러오는 중...</div>
@@ -134,19 +178,32 @@ export default function GroupStatistics() {
             <h2>아직 클로버가 없어요 😢</h2>
           ) : (
             <div css={podiumWrapper}>
-              {podium.map((p) => (
-                <div key={p.user_id} css={podiumItem}>
-                  <span css={nameStyle}>{p.user_name}</span>
-                  <div css={bar} style={{ height: 80 + p.total_clovers * 15 }}>
-                    <span css={countText}>{p.total_clovers}</span>
+              {podium.map((p) => {
+                // 막대 높이 계산: 최소 80px, 최대 200px
+                const calculatedHeight = 80 + p.total_clovers * 15;
+                const barHeight = Math.min(calculatedHeight, 200);
+
+                return (
+                  <div key={p.user_id} css={podiumItem}>
+                    <span css={nameStyle}>{p.user_name}</span>
+                    <div css={bar} style={{ height: barHeight }}>
+                      <span css={countText}>{p.total_clovers}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
 
+        {/* ──  그룹 코드 표시 영역 ── */}
+
+        {/* ─── 멤버 리스트 ─── */}
         <section css={listSection}>
+          <section css={codeSection}>
+            <span css={codeLabel}>그룹방 코드</span>
+            <span css={codeValue}>{groupCode}</span>
+          </section>
           {loading ? (
             <p>로딩 중...</p>
           ) : members.length === 0 ? (
@@ -156,12 +213,12 @@ export default function GroupStatistics() {
               <MemberList
                 key={m.user_id}
                 groupId={groupId}
-                groupName={groupName} 
+                groupName={groupName}
                 userId={m.user_id}
                 name={m.nickname}
                 clovers={
-                  rankings.find((r) => r.user_id === m.user_id)
-                    ?.total_clovers || 0
+                  rankings.find((r) => r.user_id === m.user_id)?.total_clovers ||
+                  0
                 }
                 onRefresh={loadMembers}
               />

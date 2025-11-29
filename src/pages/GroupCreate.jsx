@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 import Header from "../component/Giver_Header";
 import GroupCreateLogo from "../assets/group_clover.png";
 
-// ✅ Space API
+// Space API
 import { Space } from "../api/space.jsx";
-// ✅ supabase client (세션 확인용)
+//supabase client (세션 확인용)
 import { supabase } from "../api/supabaseClient.js";
 
 const mobileWrapper = css`
@@ -124,10 +124,12 @@ export default function GroupCreate() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // ✅ 현재 로그인 유저 세션 상태
+
+  //현재 로그인 유저 세션 상태
   const [user, setUser] = useState(null);
 
-  // ✅ 페이지 들어오면 세션 확인
+  //페이지 들어오면 세션 확인
+
   useEffect(() => {
     const loadSession = async () => {
       const { data, error } = await supabase.auth.getSession();
@@ -179,7 +181,9 @@ export default function GroupCreate() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    // ✅ 로그인 세션 없으면 생성 불가
+
+    // 로그인 세션 없으면 생성 불가
+
     if (!user) {
       setErrorMsg("로그인이 필요합니다. 먼저 로그인해주세요.");
       return;
@@ -193,8 +197,10 @@ export default function GroupCreate() {
     try {
       setLoading(true);
 
-      // ✅ creatorId 안 넘기고 groupName만 전달
-      const res = await Space(groupName.trim());
+
+      // previewCode도 함께 전달 (없으면 Space에서 자동 생성)
+      const res = await Space(groupName.trim(), previewCode || null);
+
 
       if (!res.success) {
         console.error(res.error);
@@ -206,7 +212,8 @@ export default function GroupCreate() {
       setSuccessMsg(`그룹 생성 완료! 참여코드: ${res.group.code}`);
 
       setTimeout(() => {
-        navigate("/");
+
+        navigate("/giver-main");
       }, 600);
     } catch (err) {
       console.error(err);

@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import No_777 from "../assets/No_777.svg";
 import logo from "../assets/logo.svg";
 import { useNavigate } from "react-router-dom";
+import {logOut} from "../api/Users.jsx";
 
 const mobileWrapper = css`
   width: 100vw;
@@ -89,6 +90,12 @@ export default function SpaceMain() {
     navigate("/giver-main");
   };
 
+  const logOut1 = () => {
+    // 로그아웃 로직 작성
+    logOut()
+    navigate("/login");
+  }
+
   return (
     <>
       <div css={mobileWrapper}>
@@ -99,14 +106,14 @@ export default function SpaceMain() {
 
         <div css={group2}>
           <button css={groupBtn} onClick={goToGiverMain}>
-            그룹 생성하기
+            관리중인 그룹 보기
           </button>
           <button onClick={goToReceiverMain} css={groupBtn}>
             그룹 입장하기
           </button>
         </div>
 
-        <div css={extra}>
+        <div css={extra} onClick={logOut1}>
           <p css={eText2}>로그아웃</p>
         </div>
       </div>
