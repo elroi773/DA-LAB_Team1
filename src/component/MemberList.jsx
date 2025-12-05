@@ -94,12 +94,13 @@ export default function MemberList({
     } else {
       alert("삭제 실패: " + res.message);
     }
-  };
-
-  /* ───────────────── 칭찬 처리 ───────────────── */
+  };/* ───────────────── 칭찬 처리 ───────────────── */
   const handleGiveClover = async (message) => {
-    // Give_Clover_Popup에서 message만 전달됨, count는 기본값 1
+    // count = 1 (Give_Clover_Popup에서 전달된 값)
+    // message = 사용자가 입력한 텍스트
+    console.log("📌 [MemberList] 전달된 message =", message);
     const res = await giveClover(groupId, userId, 1, message);
+  
     if (res.success) {
       alert("칭찬이 전송되었습니다!");
       setShowGivePopup(false);
@@ -108,6 +109,7 @@ export default function MemberList({
       alert("칭찬 실패: " + res.message);
     }
   };
+  
 
   return (
     <>
