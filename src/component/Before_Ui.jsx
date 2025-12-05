@@ -31,12 +31,16 @@ function getStampImage(cloverCount) {
 // 가장 최근 메시지 가져오기
 function getLatestMessage(clovers) {
   if (!clovers || clovers.length === 0) return null;
-  // created_at이 없으면 마지막 항목 반환
+
+  // created_at이 존재하면 created_at 기준 정렬
   if (clovers[0]?.created_at) {
-    const sorted = [...clovers].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const sorted = [...clovers].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
     return sorted[0]?.message || null;
   }
-  // created_at이 없으면 마지막 항목의 메시지 반환
+
+  // created_at이 없으면 "마지막에 들어온 데이터가 최신"
   return clovers[clovers.length - 1]?.message || null;
 }
 
@@ -68,23 +72,28 @@ export default function Before({ onGroupData }) {
 
       // 2. 클로버(칭찬) 데이터 가져오기
       const cloverData = await getCloverBook(userId);
-
       // 3. 그룹 목록과 클로버 데이터 병합
+
       const groupList = memberData
         .filter((item) => item.groups)
         .map((item) => {
-          const groupId = item.groups.id;
-          // 해당 그룹의 클로버 데이터 찾기
-          const cloverInfo = cloverData.find((c) => c.groupId === groupId);
+          const groupId = item.groups.id; // ❗ UUID이므로 string 유지해야 함
+
+          // UUID끼리 문자열로 비교해야 함
+          const cloverInfo = cloverData.find((c) => c.groupId === groupId) || {
+            totalCount: 0,
+            completedClovers: 0,
+            clovers: [],
+          };
 
           return {
             id: groupId,
             name: item.groups.group_name,
-            totalCount: cloverInfo?.totalCount || 0,
-            completedClovers: cloverInfo?.completedClovers || 0,
-            clovers: cloverInfo?.clovers || [],
-            stampImage: getStampImage(cloverInfo?.totalCount || 0),
-            latestMessage: getLatestMessage(cloverInfo?.clovers),
+            totalCount: cloverInfo.totalCount,
+            completedClovers: cloverInfo.completedClovers,
+            clovers: cloverInfo.clovers,
+            stampImage: getStampImage(cloverInfo.totalCount),
+            latestMessage: getLatestMessage(cloverInfo.clovers),
           };
         });
 
@@ -97,10 +106,10 @@ export default function Before({ onGroupData }) {
 
   // 현재 그룹 정보를 부모에게 전달
   useEffect(() => {
-    if (groups.length > 0 && onGroupData) {
-      onGroupData(groups[currentIndex]);
+    if (groups.length > 0) {
+      onGroupData?.(groups[currentIndex]);
     }
-  }, [currentIndex, groups, onGroupData]);
+  }, [currentIndex, groups]);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? groups.length - 1 : prev - 1));
@@ -165,9 +174,15 @@ export default function Before({ onGroupData }) {
             <div css={box} onClick={goToLookBook}>
               {hasClover && currentGroup.stampImage ? (
                 <>
-                  <img src={currentGroup.stampImage} alt="stamp" css={stampImage} />
+                  <img
+                    src={currentGroup.stampImage}
+                    alt="stamp"
+                    css={stampImage}
+                  />
                   {currentGroup.completedClovers > 0 && (
-                    <p css={completedText}>완성 클로버: {currentGroup.completedClovers}개</p>
+                    <p css={completedText}>
+                      완성 클로버: {currentGroup.completedClovers}개
+                    </p>
                   )}
                 </>
               ) : (
@@ -181,7 +196,12 @@ export default function Before({ onGroupData }) {
 
           {/* 오른쪽 화살표 */}
           {groups.length > 1 && (
-            <img src={RightBtn} alt="다음" css={arrowBtn} onClick={handleNext} />
+            <img
+              src={RightBtn}
+              alt="다음"
+              css={arrowBtn}
+              onClick={handleNext}
+            />
           )}
         </div>
       </div>
