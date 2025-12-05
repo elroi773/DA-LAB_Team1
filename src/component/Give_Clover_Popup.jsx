@@ -75,9 +75,10 @@ export const Give_Clover_Popup = ({ name, onConfirm, onCancel }) => {
 
   const handleConfirm = () => {
     const trimmed = message.trim();
+    console.log("📌 [Popup] trimmed message =", trimmed);
     if (!trimmed) return;
 
-    onConfirm?.(1, trimmed); // ✅ 무조건 1개만 전송
+    onConfirm?.(trimmed); //무조건 1개만 전송
     setMessage("");
   };
 
