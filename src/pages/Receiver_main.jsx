@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../component/Header";
 import Before from "../component/Before_Ui";
 import MessageNo from "../assets/message_no.svg";
@@ -62,19 +62,36 @@ const centerText = css`
 export default function ReceiverMain() {
   const [currentGroupData, setCurrentGroupData] = useState(null);
 
-  // Before 컴포넌트에서 현재 그룹 데이터를 받아옴
+  // ⭐ Before에서 전달받은 데이터의 변경을 확실하게 감지하기 위해
+  // shallow copy로 상태를 항상 갱신하도록 처리
   const handleGroupData = (groupData) => {
-    setCurrentGroupData(groupData);
+    if (!groupData) return;
+    setCurrentGroupData({ ...groupData }); // 강제 렌더 유도
   };
 
-  const hasMessage = currentGroupData?.latestMessage;
+  // ⭐ 데이터가 오기 전에는 Before가 먼저 렌더되도록 설정
+  if (!currentGroupData) {
+    return (
+      <div css={mobileWrapper}>
+        <Header />
+        <Before onGroupData={handleGroupData} />
+        {/* 로딩 메시지는 잠깐만 보여짐 */}
+        <p style={{ textAlign: "center", marginTop: "20px" }}>로딩 중...</p>
+      </div>
+    );
+  }
+
+  // 최신 메시지 여부 판단
+  const hasMessage = Boolean(currentGroupData.latestMessage);
 
   return (
     <div css={mobileWrapper}>
       <Header />
 
+      {/* 그룹 선택 컴포넌트 */}
       <Before onGroupData={handleGroupData} />
 
+      {/* 하단 메시지 표시 영역 */}
       <div css={bottomWrapper}>
         <p css={bottomLabel}>칭찬메세지</p>
 
@@ -86,7 +103,9 @@ export default function ReceiverMain() {
           />
 
           <p css={centerText}>
-            {hasMessage ? currentGroupData.latestMessage : "아직 칭찬을 안받았어요"}
+            {hasMessage
+              ? currentGroupData.latestMessage
+              : "아직 칭찬을 안받았어요"}
           </p>
         </div>
       </div>
